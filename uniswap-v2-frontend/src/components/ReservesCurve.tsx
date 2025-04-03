@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceDot, Label } from 'recharts';
 import { ethers } from 'ethers';
 import { Token } from '../utils/tokens';
 
@@ -8,6 +8,8 @@ interface ReservesCurveProps {
   token1: Token | null;
   reserve0: ethers.BigNumber;
   reserve1: ethers.BigNumber;
+  inputAmount?: string;
+  outputAmount?: string;
 }
 
 export const ReservesCurve: React.FC<ReservesCurveProps> = ({
@@ -15,33 +17,65 @@ export const ReservesCurve: React.FC<ReservesCurveProps> = ({
   token1,
   reserve0,
   reserve1,
+  inputAmount,
+  outputAmount
 }) => {
   // Generate data points for the curve
   const data = useMemo(() => {
     if (!token0 || !token1 || !reserve0 || !reserve1) return [];
 
-    const k = reserve0.mul(reserve1);
+    // Convert reserves to numbers for easier calculation
+    const reserve0Num = parseFloat(ethers.utils.formatUnits(reserve0, token0.decimals));
+    const reserve1Num = parseFloat(ethers.utils.formatUnits(reserve1, token1.decimals));
+    
+    const k = reserve0Num * reserve1Num;
     const points = [];
-    const numPoints = 100;
-    const maxX = reserve0.mul(2);
+    const numPoints = 200;
 
+    // Calculate range for x-axis (token0)
+    const minX = reserve0Num * 0.1;
+    const maxX = reserve0Num * 3;
+
+    // Generate points with non-linear distribution
     for (let i = 0; i < numPoints; i++) {
-      const x = maxX.mul(i).div(numPoints);
-      if (x.isZero()) continue;
-      
-      const y = k.div(x);
-      points.push({
-        x: parseFloat(ethers.utils.formatUnits(x, token0.decimals)),
-        y: parseFloat(ethers.utils.formatUnits(y, token1.decimals)),
-      });
+      const t = i / (numPoints - 1);
+      const x = minX + (maxX - minX) * (t * t);
+      const y = k / x;
+
+      if (x > 0 && y > 0 && !isNaN(y) && isFinite(y)) {
+        points.push({
+          x,
+          y,
+          tooltipX: x,
+          tooltipY: y
+        });
+      }
     }
 
     return points;
   }, [token0, token1, reserve0, reserve1]);
 
+  // Calculate current swap point
+  const currentPoint = useMemo(() => {
+    if (!inputAmount || !outputAmount || !token0 || !token1) return null;
+    
+    return {
+      x: parseFloat(inputAmount),
+      y: parseFloat(outputAmount)
+    };
+  }, [inputAmount, outputAmount, token0, token1]);
+
   if (!token0 || !token1 || data.length === 0) {
     return null;
   }
+
+  // Calculate domain padding (10% padding)
+  const xValues = data.map(p => p.x);
+  const yValues = data.map(p => p.y);
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
 
   return (
     <div className="w-full h-80 bg-dark rounded-lg p-4">
@@ -53,18 +87,22 @@ export const ReservesCurve: React.FC<ReservesCurveProps> = ({
             dataKey="x" 
             stroke="#888" 
             label={{ value: token0.symbol, position: 'bottom', fill: '#888', offset: 20 }} 
-            tickFormatter={(value) => value.toFixed(2)}
+            tickFormatter={(value) => parseFloat(value).toFixed(2)}
+            type="number"
+            domain={[minX * 0.9, maxX * 1.1]}
           />
           <YAxis 
             stroke="#888" 
             label={{ value: token1.symbol, angle: -90, position: 'left', fill: '#888', offset: 40 }} 
-            tickFormatter={(value) => value.toFixed(2)}
+            tickFormatter={(value) => parseFloat(value).toFixed(2)}
+            type="number"
+            domain={[minY * 0.9, maxY * 1.1]}
           />
           <Tooltip 
             contentStyle={{ backgroundColor: '#222', border: 'none' }}
             labelStyle={{ color: '#888' }}
-            formatter={(value: number) => [`${value.toFixed(6)} ${token1.symbol}`, token1.symbol]}
-            labelFormatter={(value) => `${value.toFixed(6)} ${token0.symbol}`}
+            formatter={(value: any) => [`${parseFloat(value).toFixed(6)} ${token1.symbol}`]}
+            labelFormatter={(value) => `${parseFloat(value).toFixed(6)} ${token0.symbol}`}
           />
           <Line 
             type="monotone" 
@@ -73,6 +111,21 @@ export const ReservesCurve: React.FC<ReservesCurveProps> = ({
             dot={false} 
             strokeWidth={2}
           />
+          {currentPoint && (
+            <ReferenceDot
+              x={currentPoint.x}
+              y={currentPoint.y}
+              r={4}
+              fill="#ff007a"
+              stroke="white"
+            >
+              <Label
+                value={`${currentPoint.x.toFixed(6)} ${token0.symbol}\n${currentPoint.y.toFixed(6)} ${token1.symbol}`}
+                position="right"
+                fill="#888"
+              />
+            </ReferenceDot>
+          )}
         </LineChart>
       </ResponsiveContainer>
     </div>

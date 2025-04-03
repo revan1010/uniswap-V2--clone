@@ -609,6 +609,8 @@ export const Swap: React.FC = () => {
             token1={tokenOut}
             reserve0={pair.reserves.reserve0}
             reserve1={pair.reserves.reserve1}
+            inputAmount={inputAmount}
+            outputAmount={outputAmount}
           />
           <PriceDistributionChart
             pairAddress={pair.address}
