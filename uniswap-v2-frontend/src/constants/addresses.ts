@@ -27,7 +27,7 @@ export const TEST_TOKENS: Token[] = [
   {
     symbol: 'SUSHI',
     name: 'SushiToken',
-    address: '0x84f91ee7fe647fb8a6d94644ec82626855e7582b',
+    address: '0x6B3595068778DD592e39A122f4f5a5cF09C90fE2',
     decimals: 18,
     logoURI: 'https://assets.coingecko.com/coins/images/12271/small/512x512_Logo_no_chop.png'
   },
