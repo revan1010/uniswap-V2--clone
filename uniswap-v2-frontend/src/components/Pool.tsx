@@ -4,7 +4,7 @@ import { useWeb3Context } from '../context/Web3Context';
 import TokenSelector from './TokenSelector';
 import { Token, parseAmount, formatAmount } from '../utils/tokens';
 import { usePair } from '../hooks/usePairs';
-import { TEST_TOKENS, WETH_ADDRESS } from '../constants/addresses';
+import { TEST_TOKENS } from '../constants/addresses';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { PairInfo } from '../hooks/usePairs';
 
@@ -21,7 +21,6 @@ export const Pool: React.FC = () => {
   const [selectedPair, setSelectedPair] = useState<PairInfo | null>(null);
   const [liquidity, setLiquidity] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [wrapAmount, setWrapAmount] = useState('');
   
   // Add state variables that were previously in renderRemoveLiquidity
   const [lpTokenBalance, setLpTokenBalance] = useState<string>("0");
@@ -36,8 +35,8 @@ export const Pool: React.FC = () => {
   );
 
   // Get token balances
-  const { balance: balanceA, refetch: refetchBalanceA } = useTokenBalance(tokenA?.address || '');
-  const { balance: balanceB, refetch: refetchBalanceB } = useTokenBalance(tokenB?.address || '');
+  const { balance: balanceA } = useTokenBalance(tokenA?.address || '');
+  const { balance: balanceB } = useTokenBalance(tokenB?.address || '');
 
   // Define fetchUserPairs before using it in effects
   const fetchUserPairs = useCallback(async () => {
