@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TEST_TOKENS, WETH_ADDRESS } from '../constants/addresses';
+import { TEST_TOKENS } from '../constants/addresses';
 import { Token } from '../utils/tokens';
 
 interface TokenSelectorProps {

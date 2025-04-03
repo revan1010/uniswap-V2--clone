@@ -21,7 +21,6 @@ export const Pool: React.FC = () => {
   const [selectedPair, setSelectedPair] = useState<PairInfo | null>(null);
   const [liquidity, setLiquidity] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isWrapping, setIsWrapping] = useState(false);
   const [wrapAmount, setWrapAmount] = useState('');
   
   // Add state variables that were previously in renderRemoveLiquidity
@@ -472,51 +471,6 @@ export const Pool: React.FC = () => {
       alert(errorMessage);
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  // Function to wrap ETH
-  const handleWrapEth = async () => {
-    if (!signer || !account || !wrapAmount || parseFloat(wrapAmount) <= 0) return;
-    
-    try {
-      setIsWrapping(true);
-      
-      // Get WETH contract
-      const wethContract = new ethers.Contract(
-        WETH_ADDRESS,
-        [
-          'function deposit() payable',
-          'function withdraw(uint wad)'
-        ],
-        signer
-      );
-      
-      // Wrap ETH by sending it to the WETH contract
-      const tx = await wethContract.deposit({
-        value: parseAmount(wrapAmount, 18)
-      });
-      
-      await tx.wait();
-      
-      // Reset the wrap amount
-      setWrapAmount('');
-      
-      // Refresh balances
-      if (tokenA?.address === WETH_ADDRESS) {
-        refetchBalanceA();
-      }
-      if (tokenB?.address === WETH_ADDRESS) {
-        refetchBalanceB();
-      }
-      
-      alert('Successfully wrapped ETH to WETH!');
-
-    } catch (error) {
-      console.error('Error wrapping ETH:', error);
-      alert('Error wrapping ETH. See console for details.');
-    } finally {
-      setIsWrapping(false);
     }
   };
 
