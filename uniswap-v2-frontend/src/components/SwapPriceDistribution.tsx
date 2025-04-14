@@ -1,7 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
-import Chart from 'chart.js/auto';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
 import { ethers } from 'ethers';
 import { Token } from '../utils/tokens';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface SwapEvent {
   sender: string;
@@ -27,12 +45,17 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
   provider
 }) => {
   const chartRef = useRef<HTMLCanvasElement>(null);
-  const chartInstance = useRef<Chart | null>(null);
+  const chartInstance = useRef<ChartJS | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
     const fetchSwapEvents = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+        
         // Swap event topic
         const swapTopic = ethers.utils.id("Swap(address,uint256,uint256,uint256,uint256,address)");
         
@@ -47,6 +70,12 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
           fromBlock,
           toBlock: 'latest'
         });
+
+        if (logs.length === 0) {
+          setHasData(false);
+          setIsLoading(false);
+          return;
+        }
 
         // Parse events
         const iface = new ethers.utils.Interface([
@@ -108,7 +137,7 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
             (min + (i * bucketSize)).toFixed(6)
           );
 
-          chartInstance.current = new Chart(ctx, {
+          chartInstance.current = new ChartJS(ctx, {
             type: 'bar',
             data: {
               labels,
@@ -176,9 +205,11 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
             }
           });
         }
+        setHasData(true);
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching swap events:', error);
+        setError('Failed to load swap history. Please try again later.');
         setIsLoading(false);
       }
     };
@@ -200,9 +231,25 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
     );
   }
 
+  if (error) {
+    return (
+      <div className="w-full h-96 bg-darker rounded-lg p-4 flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <div className="w-full h-96 bg-darker rounded-lg p-4 flex items-center justify-center">
+        <div className="text-gray-400">No swap history available for this pair</div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-96 bg-darker rounded-lg p-4">
-      <canvas ref={chartRef} />
+      <canvas ref={chartRef} style={{ width: '100%', height: '100%' }} />
     </div>
   );
 }; 
