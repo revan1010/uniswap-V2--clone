@@ -56,12 +56,16 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
         setIsLoading(true);
         setError(null);
         
+        console.log('Fetching swap events for pair:', pairAddress);
+        
         // Swap event topic
         const swapTopic = ethers.utils.id("Swap(address,uint256,uint256,uint256,uint256,address)");
         
         // Get the last 1000 blocks of events
         const currentBlock = await provider.getBlockNumber();
         const fromBlock = currentBlock - 1000;
+        
+        console.log('Querying logs from block', fromBlock, 'to', currentBlock);
         
         // Query logs
         const logs = await provider.getLogs({
@@ -70,6 +74,8 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
           fromBlock,
           toBlock: 'latest'
         });
+
+        console.log('Found', logs.length, 'swap events');
 
         if (logs.length === 0) {
           setHasData(false);
@@ -107,6 +113,9 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
           };
         });
 
+        console.log('Processed swap events:', swapEvents.length);
+        console.log('Price range:', Math.min(...swapEvents.map(e => e.price)), 'to', Math.max(...swapEvents.map(e => e.price)));
+
         // Create price distribution
         const prices = swapEvents.map(event => event.price);
         const min = Math.min(...prices);
@@ -124,18 +133,38 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
           buckets[bucketIndex]++;
         });
 
+        console.log('Created price distribution buckets:', buckets);
+
         // Create chart
         if (chartRef.current) {
+          console.log('Canvas element found, initializing chart');
           if (chartInstance.current) {
+            console.log('Destroying old chart instance');
             chartInstance.current.destroy();
           }
 
           const ctx = chartRef.current.getContext('2d');
-          if (!ctx) return;
+          if (!ctx) {
+            console.error('Failed to get canvas context');
+            return;
+          }
 
           const labels = buckets.map((_, i) => 
             (min + (i * bucketSize)).toFixed(6)
           );
+
+          // Set explicit dimensions
+          chartRef.current.style.width = '100%';
+          chartRef.current.style.height = '100%';
+          
+          // Force a specific size in pixels
+          chartRef.current.width = chartRef.current.offsetWidth;
+          chartRef.current.height = chartRef.current.offsetHeight;
+
+          console.log('Creating new chart with dimensions:', {
+            width: chartRef.current.width,
+            height: chartRef.current.height
+          });
 
           chartInstance.current = new ChartJS(ctx, {
             type: 'bar',
@@ -204,6 +233,10 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
               },
             }
           });
+          
+          console.log('Chart created successfully');
+        } else {
+          console.error('Canvas element not found');
         }
         setHasData(true);
         setIsLoading(false);
