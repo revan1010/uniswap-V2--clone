@@ -46,26 +46,139 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
 }) => {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstance = useRef<ChartJS | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasData, setHasData] = useState(false);
+  const [chartData, setChartData] = useState<{
+    labels: string[];
+    data: number[];
+  } | null>(null);
 
+  // Create and update chart
+  const createOrUpdateChart = () => {
+    if (!chartRef.current || !chartData) return;
+
+    const ctx = chartRef.current.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas dimensions
+    const container = containerRef.current;
+    if (container) {
+      const { width, height } = container.getBoundingClientRect();
+      chartRef.current.width = width;
+      chartRef.current.height = height;
+    }
+
+    // Destroy existing chart
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    // Create new chart
+    chartInstance.current = new ChartJS(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          label: 'Swap Count',
+          data: chartData.data,
+          backgroundColor: '#ec4899',
+          borderColor: '#be185d',
+          borderWidth: 1,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: `Price (${token1.symbol}/${token0.symbol})`,
+              color: '#e5e7eb',
+            },
+            grid: {
+              color: '#374151',
+            },
+            ticks: {
+              color: '#9ca3af',
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Number of Swaps',
+              color: '#e5e7eb',
+            },
+            grid: {
+              color: '#374151',
+            },
+            ticks: {
+              color: '#9ca3af',
+            }
+          }
+        },
+        plugins: {
+          title: {
+            display: true,
+            text: 'Swap Price Distribution',
+            color: '#e5e7eb',
+            font: {
+              size: 16,
+            }
+          },
+          legend: {
+            labels: {
+              color: '#e5e7eb',
+            }
+          },
+          tooltip: {
+            backgroundColor: '#1f2937',
+            titleColor: '#e5e7eb',
+            bodyColor: '#e5e7eb',
+            borderColor: '#374151',
+            borderWidth: 1,
+          }
+        },
+      }
+    });
+  };
+
+  // Handle resize
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      if (chartData) {
+        createOrUpdateChart();
+      }
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [chartData, token0, token1]);
+
+  // Fetch data
   useEffect(() => {
     const fetchSwapEvents = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        
-        console.log('Fetching swap events for pair:', pairAddress);
-        
+        setChartData(null);
+
         // Swap event topic
         const swapTopic = ethers.utils.id("Swap(address,uint256,uint256,uint256,uint256,address)");
         
         // Get the last 1000 blocks of events
         const currentBlock = await provider.getBlockNumber();
         const fromBlock = currentBlock - 1000;
-        
-        console.log('Querying logs from block', fromBlock, 'to', currentBlock);
         
         // Query logs
         const logs = await provider.getLogs({
@@ -74,8 +187,6 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
           fromBlock,
           toBlock: 'latest'
         });
-
-        console.log('Found', logs.length, 'swap events');
 
         if (logs.length === 0) {
           setHasData(false);
@@ -92,7 +203,6 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
           const event = iface.parseLog(log);
           const { sender, to, amount0In, amount1In, amount0Out, amount1Out } = event.args;
           
-          // Calculate price
           let price: number;
           if (!amount0In.isZero()) {
             price = parseFloat(ethers.utils.formatUnits(amount1Out, token1.decimals)) / 
@@ -113,9 +223,6 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
           };
         });
 
-        console.log('Processed swap events:', swapEvents.length);
-        console.log('Price range:', Math.min(...swapEvents.map(e => e.price)), 'to', Math.max(...swapEvents.map(e => e.price)));
-
         // Create price distribution
         const prices = swapEvents.map(event => event.price);
         const min = Math.min(...prices);
@@ -133,111 +240,11 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
           buckets[bucketIndex]++;
         });
 
-        console.log('Created price distribution buckets:', buckets);
+        const labels = buckets.map((_, i) => 
+          (min + (i * bucketSize)).toFixed(6)
+        );
 
-        // Create chart
-        if (chartRef.current) {
-          console.log('Canvas element found, initializing chart');
-          if (chartInstance.current) {
-            console.log('Destroying old chart instance');
-            chartInstance.current.destroy();
-          }
-
-          const ctx = chartRef.current.getContext('2d');
-          if (!ctx) {
-            console.error('Failed to get canvas context');
-            return;
-          }
-
-          const labels = buckets.map((_, i) => 
-            (min + (i * bucketSize)).toFixed(6)
-          );
-
-          // Set explicit dimensions
-          chartRef.current.style.width = '100%';
-          chartRef.current.style.height = '100%';
-          
-          // Force a specific size in pixels
-          chartRef.current.width = chartRef.current.offsetWidth;
-          chartRef.current.height = chartRef.current.offsetHeight;
-
-          console.log('Creating new chart with dimensions:', {
-            width: chartRef.current.width,
-            height: chartRef.current.height
-          });
-
-          chartInstance.current = new ChartJS(ctx, {
-            type: 'bar',
-            data: {
-              labels,
-              datasets: [{
-                label: 'Swap Count',
-                data: buckets,
-                backgroundColor: '#ec4899',
-                borderColor: '#be185d',
-                borderWidth: 1,
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: {
-                  title: {
-                    display: true,
-                    text: `Price (${token1.symbol}/${token0.symbol})`,
-                    color: '#e5e7eb',
-                  },
-                  grid: {
-                    color: '#374151',
-                  },
-                  ticks: {
-                    color: '#9ca3af',
-                  }
-                },
-                y: {
-                  title: {
-                    display: true,
-                    text: 'Number of Swaps',
-                    color: '#e5e7eb',
-                  },
-                  grid: {
-                    color: '#374151',
-                  },
-                  ticks: {
-                    color: '#9ca3af',
-                  }
-                }
-              },
-              plugins: {
-                title: {
-                  display: true,
-                  text: 'Swap Price Distribution',
-                  color: '#e5e7eb',
-                  font: {
-                    size: 16,
-                  }
-                },
-                legend: {
-                  labels: {
-                    color: '#e5e7eb',
-                  }
-                },
-                tooltip: {
-                  backgroundColor: '#1f2937',
-                  titleColor: '#e5e7eb',
-                  bodyColor: '#e5e7eb',
-                  borderColor: '#374151',
-                  borderWidth: 1,
-                }
-              },
-            }
-          });
-          
-          console.log('Chart created successfully');
-        } else {
-          console.error('Canvas element not found');
-        }
+        setChartData({ labels, data: buckets });
         setHasData(true);
         setIsLoading(false);
       } catch (error) {
@@ -248,13 +255,18 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
     };
 
     fetchSwapEvents();
-
-    return () => {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-    };
   }, [token0, token1, pairAddress, provider]);
+
+  // Create/update chart when data changes
+  useEffect(() => {
+    if (chartData) {
+      // Small delay to ensure the DOM is ready
+      const timer = setTimeout(() => {
+        createOrUpdateChart();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [chartData]);
 
   if (isLoading) {
     return (
@@ -281,7 +293,7 @@ export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
   }
 
   return (
-    <div className="w-full h-96 bg-darker rounded-lg p-4">
+    <div ref={containerRef} className="w-full h-96 bg-darker rounded-lg p-4">
       <canvas ref={chartRef} style={{ width: '100%', height: '100%' }} />
     </div>
   );
