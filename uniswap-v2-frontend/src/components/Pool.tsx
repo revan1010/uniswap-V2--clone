@@ -4,9 +4,11 @@ import { useWeb3Context } from '../context/Web3Context';
 import TokenSelector from './TokenSelector';
 import { Token, parseAmount, formatAmount } from '../utils/tokens';
 import { usePair } from '../hooks/usePairs';
-import { TEST_TOKENS } from '../constants/addresses';
+import { TEST_TOKENS, WETH_ADDRESS } from '../constants/addresses';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { PairInfo } from '../hooks/usePairs';
+import { PairsList } from './PairsList';
+import { ReservesCurve } from './ReservesCurve';
 
 type PoolAction = 'add' | 'remove';
 
@@ -21,6 +23,8 @@ export const Pool: React.FC = () => {
   const [selectedPair, setSelectedPair] = useState<PairInfo | null>(null);
   const [liquidity, setLiquidity] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isWrapping, setIsWrapping] = useState(false);
+  const [wrapAmount, setWrapAmount] = useState('');
   
   // Add state variables that were previously in renderRemoveLiquidity
   const [lpTokenBalance, setLpTokenBalance] = useState<string>("0");
@@ -35,8 +39,8 @@ export const Pool: React.FC = () => {
   );
 
   // Get token balances
-  const { balance: balanceA } = useTokenBalance(tokenA?.address || '');
-  const { balance: balanceB } = useTokenBalance(tokenB?.address || '');
+  const { balance: balanceA, refetch: refetchBalanceA } = useTokenBalance(tokenA?.address || '');
+  const { balance: balanceB, refetch: refetchBalanceB } = useTokenBalance(tokenB?.address || '');
 
   // Define fetchUserPairs before using it in effects
   const fetchUserPairs = useCallback(async () => {
@@ -473,6 +477,51 @@ export const Pool: React.FC = () => {
     }
   };
 
+  // Function to wrap ETH
+  const handleWrapEth = async () => {
+    if (!signer || !account || !wrapAmount || parseFloat(wrapAmount) <= 0) return;
+    
+    try {
+      setIsWrapping(true);
+      
+      // Get WETH contract
+      const wethContract = new ethers.Contract(
+        WETH_ADDRESS,
+        [
+          'function deposit() payable',
+          'function withdraw(uint wad)'
+        ],
+        signer
+      );
+      
+      // Wrap ETH by sending it to the WETH contract
+      const tx = await wethContract.deposit({
+        value: parseAmount(wrapAmount, 18)
+      });
+      
+      await tx.wait();
+      
+      // Reset the wrap amount
+      setWrapAmount('');
+      
+      // Refresh balances
+      if (tokenA?.address === WETH_ADDRESS) {
+        refetchBalanceA();
+      }
+      if (tokenB?.address === WETH_ADDRESS) {
+        refetchBalanceB();
+      }
+      
+      alert('Successfully wrapped ETH to WETH!');
+
+    } catch (error) {
+      console.error('Error wrapping ETH:', error);
+      alert('Error wrapping ETH. See console for details.');
+    } finally {
+      setIsWrapping(false);
+    }
+  };
+
   // If amountA changes and pair exists, calculate amountB
   useEffect(() => {
     if (action === 'add') {
@@ -798,76 +847,64 @@ export const Pool: React.FC = () => {
   };
 
   return (
-    <div className="bg-light rounded-lg shadow-md p-4 w-full max-w-md mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold text-white">Pool</h3>
-        <button className="text-gray-400 hover:text-white" onClick={() => {}}>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-          </svg>
-        </button>
-      </div>
-      
-      {/* Wrap ETH section - commented out */}
-      {/* {!isConnected ? (
-        <div className="bg-dark rounded-lg p-4 mb-4">
-          <p className="text-gray-400 mb-2">Connect your wallet to wrap ETH to WETH</p>
-          <button
-            className="w-full py-2 px-4 bg-primary text-white rounded-lg"
-            onClick={connectWallet}
-          >
-            Connect Wallet
+    <div className="space-y-4">
+      <div className="bg-light rounded-lg shadow-md p-4 w-full max-w-md mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold text-white">Pool</h3>
+          <button className="text-gray-400 hover:text-white" onClick={() => {}}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+            </svg>
           </button>
         </div>
-      ) : (
-        <div className="bg-dark rounded-lg p-4 mb-4">
-          <h3 className="text-lg text-white font-semibold mb-2">Wrap ETH to WETH</h3>
-          <p className="text-gray-400 mb-4">
-            You need WETH to add liquidity. Wrap your ETH first.
-          </p>
-          <div className="flex gap-4 mb-4">
-            <input
-              type="text"
-              className="flex-1 bg-darker text-white p-2 rounded-lg"
-              placeholder="Amount to wrap"
-              value={wrapAmount}
-              onChange={(e) => setWrapAmount(e.target.value)}
-            />
-            <button
-              className="py-2 px-4 bg-primary text-white rounded-lg"
-              onClick={handleWrap}
-              disabled={!wrapAmount || isWrapping}
-            >
-              {isWrapping ? "Wrapping..." : "Wrap ETH"}
-            </button>
-          </div>
+        
+        <div className="flex space-x-2 mb-4">
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium ${
+              action === 'add'
+                ? 'bg-primary text-white'
+                : 'bg-dark text-gray-400 hover:text-white'
+            }`}
+            onClick={() => setAction('add')}
+          >
+            Add
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium ${
+              action === 'remove'
+                ? 'bg-primary text-white'
+                : 'bg-dark text-gray-400 hover:text-white'
+            }`}
+            onClick={() => setAction('remove')}
+          >
+            Remove
+          </button>
         </div>
-      )} */}
-
-      {/* Network info section - commented out */}
-      {/* <div className="bg-dark rounded-lg p-4 mb-4">
-        <h3 className="text-lg text-white font-semibold mb-2">Using Tenderly Mainnet Fork</h3>
-        <p className="text-gray-400">
-          You're connected to a Tenderly mainnet fork, which allows you to use real mainnet tokens for testing.
-        </p>
-      </div> */}
-
-      <div className="flex border-b border-light mb-4">
-        <button
-          className={`py-2 px-4 ${action === 'add' ? 'text-primary border-b-2 border-primary' : 'text-gray-400'}`}
-          onClick={() => setAction('add')}
-        >
-          Add
-        </button>
-        <button
-          className={`py-2 px-4 ${action === 'remove' ? 'text-primary border-b-2 border-primary' : 'text-gray-400'}`}
-          onClick={() => setAction('remove')}
-        >
-          Remove
-        </button>
+        
+        {action === 'add' ? renderAddLiquidity() : renderRemoveLiquidity()}
       </div>
-      
-      {action === 'add' ? renderAddLiquidity() : renderRemoveLiquidity()}
+
+      {/* Add the PairsList component */}
+      <div className="w-full max-w-3xl mx-auto">
+        <PairsList />
+      </div>
+
+      {/* Add reserves curve if we have a pool */}
+      {selectedPair && tokenA && tokenB && pair && (
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold text-white mb-4">Reserves Curve</h3>
+          <ReservesCurve
+            token0={tokenA}
+            token1={tokenB}
+            reserve0={pair.reserves.reserve0}
+            reserve1={pair.reserves.reserve1}
+            currentPoint={{
+              x: parseFloat(ethers.utils.formatUnits(pair.reserves.reserve0, tokenA.decimals)),
+              y: parseFloat(ethers.utils.formatUnits(pair.reserves.reserve1, tokenB.decimals))
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }; 

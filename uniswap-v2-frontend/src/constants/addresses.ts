@@ -1,12 +1,12 @@
 import { Token } from '../utils/tokens';
 
 // Tenderly Mainnet Fork addresses
-export const FACTORY_ADDRESS = '0x5818d74896686365a802978A764738dE4F61Aa2d';
-export const ROUTER_ADDRESS = '0x6F97623d5971C1Ac431f12bF9A196dC618f70Ba7';
+export const FACTORY_ADDRESS = '0xc5c136E3c8c31bfeeA9417A616f34D657Fc2A3F4';
+export const ROUTER_ADDRESS = '0xDf1763717e66ab839B69A6909dC45A30d7756054';
 export const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
 
 // Tenderly Mainnet RPC URL
-export const RPC_URL = 'https://virtual.mainnet.rpc.tenderly.co/fa02c8a1-8a8b-4d14-b568-1b73006cbea8';
+export const RPC_URL = 'https://virtual.mainnet.rpc.tenderly.co/cec2fc9b-6122-43a3-bd3c-c081f32e2727';
 
 // Test tokens to display in the UI
 export const TEST_TOKENS: Token[] = [
@@ -15,7 +15,7 @@ export const TEST_TOKENS: Token[] = [
     name: 'Ethereum',
     address: 'ETH',
     decimals: 18,
-    logoURI: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png'
+    logoURI: 'https://assets.coingecko.com/coins/images/279/standard/ethereum.png?1696501628'
   },
   {
     symbol: 'WETH',
@@ -65,6 +65,6 @@ export const TEST_TOKENS: Token[] = [
     name: 'Chainlink',
     address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
     decimals: 18,
-    logoURI: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png'
+    logoURI: 'https://assets.coingecko.com/coins/images/877/standard/chainlink-new-logo.png?1696502009'
   }
 ]; 

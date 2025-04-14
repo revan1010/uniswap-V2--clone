@@ -1,0 +1,208 @@
+import React, { useEffect, useRef, useState } from 'react';
+import Chart from 'chart.js/auto';
+import { ethers } from 'ethers';
+import { Token } from '../utils/tokens';
+
+interface SwapEvent {
+  sender: string;
+  amount0In: ethers.BigNumber;
+  amount1In: ethers.BigNumber;
+  amount0Out: ethers.BigNumber;
+  amount1Out: ethers.BigNumber;
+  to: string;
+  price: number;
+}
+
+interface SwapPriceDistributionProps {
+  token0: Token;
+  token1: Token;
+  pairAddress: string;
+  provider: ethers.providers.Provider;
+}
+
+export const SwapPriceDistribution: React.FC<SwapPriceDistributionProps> = ({
+  token0,
+  token1,
+  pairAddress,
+  provider
+}) => {
+  const chartRef = useRef<HTMLCanvasElement>(null);
+  const chartInstance = useRef<Chart | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSwapEvents = async () => {
+      try {
+        // Swap event topic
+        const swapTopic = ethers.utils.id("Swap(address,uint256,uint256,uint256,uint256,address)");
+        
+        // Get the last 1000 blocks of events
+        const currentBlock = await provider.getBlockNumber();
+        const fromBlock = currentBlock - 1000;
+        
+        // Query logs
+        const logs = await provider.getLogs({
+          address: pairAddress,
+          topics: [swapTopic],
+          fromBlock,
+          toBlock: 'latest'
+        });
+
+        // Parse events
+        const iface = new ethers.utils.Interface([
+          "event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out, address indexed to)"
+        ]);
+
+        const swapEvents: SwapEvent[] = logs.map(log => {
+          const event = iface.parseLog(log);
+          const { sender, to, amount0In, amount1In, amount0Out, amount1Out } = event.args;
+          
+          // Calculate price
+          let price: number;
+          if (!amount0In.isZero()) {
+            price = parseFloat(ethers.utils.formatUnits(amount1Out, token1.decimals)) / 
+                   parseFloat(ethers.utils.formatUnits(amount0In, token0.decimals));
+          } else {
+            price = parseFloat(ethers.utils.formatUnits(amount1In, token1.decimals)) / 
+                   parseFloat(ethers.utils.formatUnits(amount0Out, token0.decimals));
+          }
+          
+          return {
+            sender,
+            to,
+            amount0In,
+            amount1In,
+            amount0Out,
+            amount1Out,
+            price
+          };
+        });
+
+        // Create price distribution
+        const prices = swapEvents.map(event => event.price);
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
+        const range = max - min;
+        const bucketCount = 20;
+        const bucketSize = range / bucketCount;
+
+        const buckets = new Array(bucketCount).fill(0);
+        prices.forEach(price => {
+          const bucketIndex = Math.min(
+            Math.floor((price - min) / bucketSize),
+            bucketCount - 1
+          );
+          buckets[bucketIndex]++;
+        });
+
+        // Create chart
+        if (chartRef.current) {
+          if (chartInstance.current) {
+            chartInstance.current.destroy();
+          }
+
+          const ctx = chartRef.current.getContext('2d');
+          if (!ctx) return;
+
+          const labels = buckets.map((_, i) => 
+            (min + (i * bucketSize)).toFixed(6)
+          );
+
+          chartInstance.current = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [{
+                label: 'Swap Count',
+                data: buckets,
+                backgroundColor: '#ec4899',
+                borderColor: '#be185d',
+                borderWidth: 1,
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: `Price (${token1.symbol}/${token0.symbol})`,
+                    color: '#e5e7eb',
+                  },
+                  grid: {
+                    color: '#374151',
+                  },
+                  ticks: {
+                    color: '#9ca3af',
+                  }
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: 'Number of Swaps',
+                    color: '#e5e7eb',
+                  },
+                  grid: {
+                    color: '#374151',
+                  },
+                  ticks: {
+                    color: '#9ca3af',
+                  }
+                }
+              },
+              plugins: {
+                title: {
+                  display: true,
+                  text: 'Swap Price Distribution',
+                  color: '#e5e7eb',
+                  font: {
+                    size: 16,
+                  }
+                },
+                legend: {
+                  labels: {
+                    color: '#e5e7eb',
+                  }
+                },
+                tooltip: {
+                  backgroundColor: '#1f2937',
+                  titleColor: '#e5e7eb',
+                  bodyColor: '#e5e7eb',
+                  borderColor: '#374151',
+                  borderWidth: 1,
+                }
+              },
+            }
+          });
+        }
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching swap events:', error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchSwapEvents();
+
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [token0, token1, pairAddress, provider]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-96 bg-darker rounded-lg p-4 flex items-center justify-center">
+        <div className="text-white">Loading swap history...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-96 bg-darker rounded-lg p-4">
+      <canvas ref={chartRef} />
+    </div>
+  );
+}; 

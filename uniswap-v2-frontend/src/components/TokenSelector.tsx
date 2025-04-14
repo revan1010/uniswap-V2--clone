@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TEST_TOKENS } from '../constants/addresses';
+import { TEST_TOKENS, WETH_ADDRESS } from '../constants/addresses';
 import { Token } from '../utils/tokens';
 
 interface TokenSelectorProps {
@@ -51,7 +51,18 @@ const TokenSelector: React.FC<TokenSelectorProps> = ({
       >
         {selectedToken ? (
           <div className="flex items-center">
-            <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-xs mr-2">
+            <img
+              src={selectedToken.logoURI}
+              alt={selectedToken.symbol}
+              className="w-6 h-6 rounded-full mr-2"
+              onError={(e) => {
+                // If image fails to load, show fallback with first letter
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <div className="w-6 h-6 rounded-full bg-gray-700 hidden flex items-center justify-center text-xs mr-2">
               {selectedToken.symbol.charAt(0)}
             </div>
             <span>{selectedToken.symbol}</span>
@@ -93,7 +104,18 @@ const TokenSelector: React.FC<TokenSelectorProps> = ({
                 className="w-full text-left px-4 py-2 hover:bg-dark flex items-center focus:outline-none"
                 onClick={() => handleTokenSelect(token)}
               >
-                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-sm mr-3">
+                <img
+                  src={token.logoURI}
+                  alt={token.symbol}
+                  className="w-8 h-8 rounded-full mr-3"
+                  onError={(e) => {
+                    // If image fails to load, show fallback with first letter
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+                <div className="w-8 h-8 rounded-full bg-gray-700 hidden flex items-center justify-center text-sm mr-3">
                   {token.symbol.charAt(0)}
                 </div>
                 <div>

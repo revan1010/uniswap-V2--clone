@@ -8,6 +8,9 @@ import { TEST_TOKENS, WETH_ADDRESS } from '../constants/addresses';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { ReservesCurve } from './ReservesCurve';
 import { PriceDistributionChart } from './PriceDistributionChart';
+import { SwapRoute } from './SwapRoute';
+import { findBestPath, getAmountsForPath, calculateMultiHopPriceImpact } from '../utils/pathFinder';
+import { SwapPriceDistribution } from './SwapPriceDistribution';
 
 // Add a utility function at the top of the file to help with gas estimation
 const getGasSettings = (isEstimationFailed = false) => {
@@ -18,7 +21,7 @@ const getGasSettings = (isEstimationFailed = false) => {
 };
 
 export const Swap: React.FC = () => {
-  const { account, routerContract, isConnected, signer, connectWallet } = useWeb3Context();
+  const { account, routerContract, isConnected, signer, provider, connectWallet } = useWeb3Context();
   const [tokenIn, setTokenIn] = useState<Token | null>(null);
   const [tokenOut, setTokenOut] = useState<Token | null>(null);
   const [inputAmount, setInputAmount] = useState('');
@@ -74,23 +77,14 @@ export const Swap: React.FC = () => {
   };
 
   const calculateOutput = useCallback(async () => {
-    console.log("Calculate Output Called", {
-      hasRouter: !!routerContract,
-      hasTokenIn: !!tokenIn,
-      hasTokenOut: !!tokenOut,
-      inputAmount,
-      pairExists
-    });
-
     if (
       !routerContract ||
       !tokenIn ||
       !tokenOut ||
       !inputAmount ||
       inputAmount === '0' ||
-      !pairExists
+      !provider
     ) {
-      console.log("Calculation skipped due to missing requirements");
       if (manualOutputUpdate || inputAmount === '') {
         return;
       }
@@ -99,46 +93,47 @@ export const Swap: React.FC = () => {
     }
 
     try {
-      console.log("Calculating output amount...");
       const amountIn = parseAmount(inputAmount, tokenIn.decimals);
-      const path = [tokenIn.address, tokenOut.address];
       
-      console.log("Getting amounts out for:", {
-        amountIn: amountIn.toString(),
-        path
-      });
+      // Find the best path
+      const path = await findBestPath(tokenIn, tokenOut, provider);
+      setCurrentPath(path);
       
-      const amounts = await routerContract.getAmountsOut(amountIn, path);
-      const amountOut = amounts[1];
+      // Get amounts for the path using router contract
+      const pathAddresses = path.map(token => 
+        token.address === "ETH" ? WETH_ADDRESS : token.address
+      );
       
-      console.log("Calculation result:", {
-        amountOut: amountOut.toString(),
-        formatted: formatAmount(amountOut, tokenOut.decimals)
-      });
+      const amounts = await routerContract.getAmountsOut(amountIn, pathAddresses);
+      const amountOut = amounts[amounts.length - 1];
       
-      setOutputAmount(formatAmount(amountOut, tokenOut.decimals));
+      // Format the output amount
+      const formattedOutput = formatAmount(amountOut.toString(), tokenOut.decimals);
+      setOutputAmount(formattedOutput);
+      
+      // Set formatted amounts for display with proper TypeScript types
+      const formattedAmounts = amounts.map((amount: ethers.BigNumber, index: number) => 
+        formatAmount(amount.toString(), path[index].decimals)
+      );
+      setPathAmounts(formattedAmounts);
       
       // Calculate price impact
-      if (pair) {
-        let reserve0 = pair.reserves.reserve0;
-        let reserve1 = pair.reserves.reserve1;
-        
-        console.log("Pair reserves:", {
-          reserve0: reserve0.toString(),
-          reserve1: reserve1.toString()
-        });
-        
-        if (tokenIn.address.toLowerCase() !== pair.token0.address.toLowerCase()) {
-          [reserve0, reserve1] = [reserve1, reserve0];
-        }
-        
-        const impact = calculatePriceImpact(reserve0, reserve1, amountIn);
-        setPriceImpact(impact);
-      }
+      const impact = await calculateMultiHopPriceImpact(pathAddresses, amountIn, amountOut, provider);
+      setPriceImpact(impact);
+
+      // Debug log
+      console.log('Swap calculation:', {
+        inputAmount,
+        amountIn: amountIn.toString(),
+        amountOut: amountOut.toString(),
+        formattedOutput,
+        impact
+      });
     } catch (error) {
       console.error('Error calculating output:', error);
+      setOutputAmount('');
     }
-  }, [routerContract, tokenIn, tokenOut, inputAmount, pairExists, pair, manualOutputUpdate]);
+  }, [routerContract, tokenIn, tokenOut, inputAmount, provider, manualOutputUpdate]);
 
   const calculateInput = useCallback(async () => {
     if (
@@ -171,7 +166,7 @@ export const Swap: React.FC = () => {
       const amounts = await routerContract.getAmountsIn(amountOut, path);
       const amountIn = amounts[0];
       
-      setInputAmount(formatAmount(amountIn, tokenIn.decimals));
+      setInputAmount(formatAmount(amountIn.toString(), tokenIn.decimals));
       
       // Calculate price impact
       if (pair) {
@@ -303,7 +298,7 @@ export const Swap: React.FC = () => {
       return;
     }
     
-    if (!routerContract) {
+    if (!routerContract || !provider) {
       console.log("Router contract is null - reconnecting wallet");
       alert("Connection to the network is not established. Please reconnect your wallet.");
       await connectWallet();
@@ -317,13 +312,13 @@ export const Swap: React.FC = () => {
       const isEthIn = tokenIn.address === "ETH";
       const isEthOut = tokenOut.address === "ETH";
       
-      // Construct the path
-      const path = [
-        isEthIn ? WETH_ADDRESS : tokenIn.address,
-        isEthOut ? WETH_ADDRESS : tokenOut.address
-      ];
+      // Find the best path
+      const path = await findBestPath(tokenIn, tokenOut, provider);
+      const pathAddresses = path.map(token => 
+        token.address === "ETH" ? WETH_ADDRESS : token.address
+      );
       
-      console.log("Swap path:", path);
+      console.log("Swap path:", pathAddresses);
       
       const amountIn = parseAmount(inputAmount, tokenIn.decimals);
       const amountOutMin = parseAmount(
@@ -338,7 +333,7 @@ export const Swap: React.FC = () => {
 
       // Get initial gas settings
       let overrides = getGasSettings();
-      const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes
+      const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
       
       try {
         // Check approval first if not ETH
@@ -354,21 +349,12 @@ export const Swap: React.FC = () => {
           }
         }
 
-        // Check pool liquidity first
-        const amounts = await routerContract.getAmountsOut(amountIn, path);
-        console.log("Amounts out:", amounts.map((a: ethers.BigNumber) => a.toString()));
-        
-        if (amounts[amounts.length - 1].lt(amountOutMin)) {
-          throw new Error("Insufficient liquidity for this trade");
-        }
-        
         let tx;
         
         if (isEthIn) {
-          console.log("Swapping ETH for tokens with value:", amountIn.toString());
           tx = await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
             amountOutMin,
-            path,
+            pathAddresses,
             account,
             deadline,
             { 
@@ -377,21 +363,19 @@ export const Swap: React.FC = () => {
             }
           );
         } else if (isEthOut) {
-          console.log("Swapping tokens for ETH");
           tx = await routerContract.swapExactTokensForETHSupportingFeeOnTransferTokens(
             amountIn,
             amountOutMin,
-            path,
+            pathAddresses,
             account,
             deadline,
             overrides
           );
         } else {
-          console.log("Swapping tokens for tokens");
           tx = await routerContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
             amountIn,
             amountOutMin,
-            path,
+            pathAddresses,
             account,
             deadline,
             overrides
@@ -416,7 +400,7 @@ export const Swap: React.FC = () => {
           if (isEthIn) {
             await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
               newAmountOutMin,
-              path,
+              pathAddresses,
               account,
               deadline,
               { 
@@ -459,6 +443,10 @@ export const Swap: React.FC = () => {
     if (tokenIn.address === WETH_ADDRESS && tokenOut.address === "ETH") return 'Unwrap ETH';
     return 'Swap';
   };
+
+  // Add state for path and amounts
+  const [currentPath, setCurrentPath] = useState<Token[]>([]);
+  const [pathAmounts, setPathAmounts] = useState<string[]>([]);
 
   return (
     <div className="space-y-4">
@@ -538,6 +526,11 @@ export const Swap: React.FC = () => {
           </div>
         </div>
         
+        {/* Route information */}
+        {currentPath.length > 0 && (
+          <SwapRoute path={currentPath} amounts={pathAmounts} />
+        )}
+        
         {/* Price information */}
         {tokenIn && tokenOut && inputAmount && outputAmount && (
           <div className="bg-darker rounded-lg p-3 mb-4 text-sm">
@@ -553,12 +546,20 @@ export const Swap: React.FC = () => {
                     return '1 ETH = 1 WETH';
                   } else if (isEthOut && tokenIn.address === WETH_ADDRESS) {
                     return '1 WETH = 1 ETH';
-                  } else if (parseFloat(inputAmount) > 0) {
-                    return `1 ${tokenIn.symbol} = ${(parseFloat(outputAmount) / parseFloat(inputAmount)).toFixed(6)} ${tokenOut.symbol}`;
-                  } else if (parseFloat(outputAmount) > 0) {
-                    return `1 ${tokenOut.symbol} = ${(parseFloat(inputAmount) / parseFloat(outputAmount)).toFixed(6)} ${tokenIn.symbol}`;
                   } else {
-                    return `1 ${tokenIn.symbol} = 0.00 ${tokenOut.symbol}`;
+                    // Get amounts in BigNumber format
+                    const amountInBN = parseAmount(inputAmount, tokenIn.decimals);
+                    const amountOutBN = parseAmount(outputAmount, tokenOut.decimals);
+                    
+                    if (amountInBN && amountOutBN && !amountInBN.isZero()) {
+                      // Calculate price using BigNumber arithmetic to maintain precision
+                      const scaleFactor = ethers.BigNumber.from(10).pow(18); // Use 18 decimals for precision
+                      const price = amountOutBN.mul(scaleFactor).div(amountInBN);
+                      const priceFormatted = formatAmount(price.toString(), 18);
+                      return `1 ${tokenIn.symbol} = ${priceFormatted} ${tokenOut.symbol}`;
+                    } else {
+                      return `1 ${tokenIn.symbol} = 0.00 ${tokenOut.symbol}`;
+                    }
                   }
                 })()}
               </div>
@@ -566,7 +567,6 @@ export const Swap: React.FC = () => {
             
             {/* Only show price impact if this is not a direct ETH-WETH swap */}
             {priceImpact !== null && (() => {
-              // Determine if tokens are ETH or WETH
               const isEthIn = tokenIn.address === "ETH";
               const isEthOut = tokenOut.address === "ETH";
               
@@ -601,23 +601,29 @@ export const Swap: React.FC = () => {
         </button>
       </div>
 
-      {/* Charts section */}
-      {pair && tokenIn && tokenOut && (
-        <div className="w-full max-w-3xl mx-auto space-y-4">
-          <ReservesCurve
-            token0={tokenIn}
-            token1={tokenOut}
-            reserve0={pair.reserves.reserve0}
-            reserve1={pair.reserves.reserve1}
-            inputAmount={inputAmount}
-            outputAmount={outputAmount}
-          />
-          <PriceDistributionChart
-            pairAddress={pair.address}
-            token0={tokenIn}
-            token1={tokenOut}
-          />
-        </div>
+      {/* Add reserves curve and price distribution if we have a pair */}
+      {tokenIn && tokenOut && pair && provider && (
+        <>
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold text-white mb-4">Reserves Curve</h3>
+            <ReservesCurve
+              token0={tokenIn}
+              token1={tokenOut}
+              reserve0={pair.reserves.reserve0}
+              reserve1={pair.reserves.reserve1}
+            />
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold text-white mb-4">Historical Swap Prices</h3>
+            <SwapPriceDistribution
+              token0={tokenIn}
+              token1={tokenOut}
+              pairAddress={pair.address}
+              provider={provider}
+            />
+          </div>
+        </>
       )}
     </div>
   );

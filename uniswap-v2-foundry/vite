@@ -1,0 +1,47 @@
+
+
+  VITE v6.2.3  ready in 1002 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
+5:45:51 PM [vite] (client) hmr update /src/index.css, /src/compon
+5:45:51 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletCo
+5:45:51 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/context/Web3Context.tsx, /src/components/TokenSel
+5:45:51 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/context/Web3Context.tsx, /src/components/TokenSelector.tsx
+5:45:52 PM [vite] (client) hmr invalidate /src/context/Web3Contex
+5:45:52 PM [vite] (client) hmr invalidate /src/context/Web3Context.tsx Could not Fast Refresh ("useWeb3Context" export is incompat
+5:45:52 PM [vite] (client) hmr invalidate /src/context/Web3Context.tsx Could not Fast Refresh ("useWeb3Context" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/
+5:45:52 PM [vite] (client) hmr invalidate /src/context/Web3Context.tsx Could not Fast Refresh ("useWeb3Context" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+5:45:52 PM [vite] (client) hmr update /src/App.tsx, /src/index.cs
+5:45:52 PM [vite] (client) hmr update /src/App.tsx, /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/compo
+5:45:52 PM [vite] (client) hmr update /src/App.tsx, /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/components/PriceDistributionChart.t
+5:45:52 PM [vite] (client) hmr update /src/App.tsx, /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/components/PriceDistributionChart.tsx
+5:54:00 PM [vite] (client) hmr update /src/index.css, /src/compon
+5:54:00 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletCo
+5:54:00 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/context/Web3Context.tsx, /src/components/TokenSel
+5:54:00 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/context/Web3Context.tsx, /src/components/TokenSelector.tsx
+5:54:00 PM [vite] (client) hmr invalidate /src/context/Web3Contex
+5:54:00 PM [vite] (client) hmr invalidate /src/context/Web3Context.tsx Could not Fast Refresh ("useWeb3Context" export is incompat
+5:54:00 PM [vite] (client) hmr invalidate /src/context/Web3Context.tsx Could not Fast Refresh ("useWeb3Context" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/
+5:54:00 PM [vite] (client) hmr invalidate /src/context/Web3Context.tsx Could not Fast Refresh ("useWeb3Context" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+5:54:00 PM [vite] (client) hmr update /src/App.tsx, /src/index.cs
+5:54:00 PM [vite] (client) hmr update /src/App.tsx, /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/compo
+5:54:00 PM [vite] (client) hmr update /src/App.tsx, /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/components/PriceDistributionChart.t
+5:54:00 PM [vite] (client) hmr update /src/App.tsx, /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/components/PriceDistributionChart.tsx
+5:54:08 PM [vite] (client) hmr update /src/index.css, /src/compon
+5:54:08 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletCo
+5:54:08 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/context/Web3Context.tsx, /src/components/TokenSel
+5:54:08 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/context/Web3Context.tsx, /src/components/TokenSelector.tsx
+5:54:08 PM [vite] (client) hmr update /src/index.css, /src/compon
+5:54:08 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletCo
+5:54:08 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/context/Web3Context.tsx, /src/components/TokenSel
+5:54:08 PM [vite] (client) hmr update /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/context/Web3Context.tsx, /src/components/TokenSelector.tsx (x2)
+5:54:08 PM [vite] (client) hmr invalidate /src/context/Web3Contex
+5:54:08 PM [vite] (client) hmr invalidate /src/context/Web3Context.tsx Could not Fast Refresh ("useWeb3Context" export is incompat
+5:54:08 PM [vite] (client) hmr invalidate /src/context/Web3Context.tsx Could not Fast Refresh ("useWeb3Context" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/
+5:54:08 PM [vite] (client) hmr invalidate /src/context/Web3Context.tsx Could not Fast Refresh ("useWeb3Context" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+5:54:08 PM [vite] (client) hmr update /src/App.tsx, /src/index.cs
+5:54:08 PM [vite] (client) hmr update /src/App.tsx, /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/compo
+5:54:08 PM [vite] (client) hmr update /src/App.tsx, /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/components/PriceDistributionChart.t
+5:54:08 PM [vite] (client) hmr update /src/App.tsx, /src/index.css, /src/components/Swap.tsx, /src/components/Pool.tsx, /src/components/WalletConnect.tsx, /src/components/PriceDistributionChart.tsx

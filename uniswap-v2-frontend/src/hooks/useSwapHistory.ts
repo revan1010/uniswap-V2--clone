@@ -93,12 +93,12 @@ export const useSwapHistory = (
 
     // Listen for new swap events
     const handleSwap = async (
-      _sender: string,
+      sender: string,
       amount0In: ethers.BigNumber,
       amount1In: ethers.BigNumber,
       amount0Out: ethers.BigNumber,
       amount1Out: ethers.BigNumber,
-      _to: string,
+      to: string,
       event: ethers.Event
     ) => {
       const block = await event.getBlock();
