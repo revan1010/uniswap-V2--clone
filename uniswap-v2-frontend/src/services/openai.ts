@@ -1,10 +1,18 @@
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // Note: In production, you should use a backend service
-});
+let openai: OpenAI;
+
+export const setOpenAIKey = (apiKey: string) => {
+  openai = new OpenAI({
+    apiKey,
+    dangerouslyAllowBrowser: true // Note: In production, you should use a backend service
+  });
+};
+
+// Initialize with key from env if available
+if (import.meta.env.VITE_OPENAI_API_KEY) {
+  setOpenAIKey(import.meta.env.VITE_OPENAI_API_KEY);
+}
 
 const FUNCTION_DEFINITIONS = [
   {
