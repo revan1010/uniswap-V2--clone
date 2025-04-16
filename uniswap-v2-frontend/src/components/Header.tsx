@@ -30,6 +30,16 @@ export const Header: React.FC = () => {
           >
             Pool
           </Link>
+          <Link 
+            to="/nl" 
+            className={`transition-colors ${
+              location.pathname === '/nl' 
+                ? 'text-primary' 
+                : 'text-white hover:text-primary'
+            }`}
+          >
+            Natural Language
+          </Link>
         </nav>
       </div>
       <WalletConnect />

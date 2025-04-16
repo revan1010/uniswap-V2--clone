@@ -4,6 +4,7 @@ import { Web3Provider } from './context/Web3Context'
 import { Header } from './components/Header'
 import { Swap } from './components/Swap'
 import { Pool } from './components/Pool'
+import { NaturalLanguage } from './pages/NaturalLanguage'
 import './App.css'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
             <Routes>
               <Route path="/swap" element={<Swap />} />
               <Route path="/pool" element={<Pool />} />
+              <Route path="/nl" element={<NaturalLanguage />} />
               <Route path="/" element={<Navigate to="/swap" replace />} />
             </Routes>
           </main>
