@@ -105,10 +105,18 @@ const FUNCTION_DEFINITIONS = [
   },
   {
     name: 'getSwapCount',
-    description: 'Get the number of swaps in a given timeframe',
+    description: 'Get the number of swaps in a specific pool or all pools for a given timeframe',
     parameters: {
       type: 'object',
       properties: {
+        token0: {
+          type: 'string',
+          description: 'Optional: The symbol of the first token in the pool. If not provided, will count swaps across all pools.'
+        },
+        token1: {
+          type: 'string',
+          description: 'Optional: The symbol of the second token in the pool. If not provided, will count swaps across all pools.'
+        },
         timeframe: {
           type: 'string',
           description: 'The timeframe to count swaps for (today, this week, this month, all time)',

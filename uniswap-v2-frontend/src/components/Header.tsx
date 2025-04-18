@@ -40,6 +40,16 @@ export const Header: React.FC = () => {
           >
             Natural Language
           </Link>
+          <Link 
+            to="/nl/test" 
+            className={`transition-colors ${
+              location.pathname === '/nl/test' 
+                ? 'text-primary' 
+                : 'text-white hover:text-primary'
+            }`}
+          >
+            Test Cases
+          </Link>
         </nav>
       </div>
       <WalletConnect />

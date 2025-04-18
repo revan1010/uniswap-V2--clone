@@ -63,7 +63,9 @@ export interface CommandExecutor {
     };
   }>;
   
-  getSwapCount: (params: {
+  getSwapCount: (params: { 
+    token0?: string;
+    token1?: string;
     timeframe: string;
   }) => Promise<{
     success: boolean;
@@ -267,50 +269,124 @@ export const createCommandExecutor = (
     }
   };
 
-  const getSwapCount = async (params: { timeframe: string }) => {
+  const getSwapCount = async (params: { 
+    token0?: string;
+    token1?: string;
+    timeframe: string;
+  }) => {
     try {
-      if (!provider) {
+      if (!provider || !routerContract) {
         return {
           success: false,
           error: 'Provider not available'
         };
       }
 
-      // Calculate the fromBlock based on timeframe
-      const currentBlock = await provider.getBlockNumber();
-      const blocksPerDay = 7200; // Approximate number of blocks per day
-      let fromBlock: number;
+      // Get factory contract
+      const factoryContract = new ethers.Contract(
+        await routerContract.factory(),
+        [
+          'function getPair(address,address) view returns (address)',
+          'function allPairs(uint) view returns (address)',
+          'function allPairsLength() view returns (uint)'
+        ],
+        provider
+      );
 
+      const swapTopic = ethers.utils.id("Swap(address,uint256,uint256,uint256,uint256,address)");
+
+      // If specific tokens are provided, get swaps for that pool only
+      if (params.token0 && params.token1) {
+        const token0 = findTokenBySymbol(params.token0);
+        const token1 = findTokenBySymbol(params.token1);
+
+        if (!token0 || !token1) {
+          return {
+            success: false,
+            error: 'Invalid token symbols'
+          };
+        }
+
+        const pairAddress = await factoryContract.getPair(
+          token0.address === 'ETH' ? WETH_ADDRESS : token0.address,
+          token1.address === 'ETH' ? WETH_ADDRESS : token1.address
+        );
+
+        if (pairAddress === ethers.constants.AddressZero) {
+          return {
+            success: false,
+            error: 'Pool does not exist'
+          };
+        }
+
+        // Get latest block for reference
+        const latestBlock = await provider.getBlock('latest');
+        let fromBlock;
+
+        // Use simpler block-based filtering
+        switch (params.timeframe) {
+          case 'today':
+            // Approximately last 6500 blocks (24 hours)
+            fromBlock = Math.max(0, latestBlock.number - 6500);
+            break;
+          case 'this week':
+            // Last 45500 blocks (7 days)
+            fromBlock = Math.max(0, latestBlock.number - 45500);
+            break;
+          case 'this month':
+            // Last 195000 blocks (30 days)
+            fromBlock = Math.max(0, latestBlock.number - 195000);
+            break;
+          case 'all time':
+            fromBlock = 0;
+            break;
+          default:
+            fromBlock = Math.max(0, latestBlock.number - 6500); // Default to 24 hours
+        }
+
+        const logs = await provider.getLogs({
+          address: pairAddress,
+          topics: [swapTopic],
+          fromBlock,
+          toBlock: 'latest'
+        });
+
+        return {
+          success: true,
+          count: logs.length
+        };
+      }
+      
+      // If no specific tokens provided, count swaps across recent pools
+      let totalSwaps = 0;
+      const pairsLength = await factoryContract.allPairsLength();
+      
+      // Get latest block for reference
+      const latestBlock = await provider.getBlock('latest');
+      let fromBlock;
+
+      // Use simpler block-based filtering
       switch (params.timeframe) {
         case 'today':
-          fromBlock = currentBlock - blocksPerDay;
+          fromBlock = Math.max(0, latestBlock.number - 6500);
           break;
         case 'this week':
-          fromBlock = currentBlock - (blocksPerDay * 7);
+          fromBlock = Math.max(0, latestBlock.number - 45500);
           break;
         case 'this month':
-          fromBlock = currentBlock - (blocksPerDay * 30);
+          fromBlock = Math.max(0, latestBlock.number - 195000);
           break;
         case 'all time':
           fromBlock = 0;
           break;
         default:
-          fromBlock = currentBlock - blocksPerDay;
+          fromBlock = Math.max(0, latestBlock.number - 6500);
       }
 
-      // Get factory contract
-      const factoryContract = new ethers.Contract(
-        await routerContract?.factory(),
-        ['function allPairs(uint) view returns (address)'],
-        provider
-      );
-
-      // Get all pairs and count their swaps
-      let totalSwaps = 0;
-      const swapTopic = ethers.utils.id("Swap(address,uint256,uint256,uint256,uint256,address)");
-
-      // For now, just check the first 10 pairs
-      for (let i = 0; i < 10; i++) {
+      // Only look at the most recent pools for better performance
+      const poolsToCheck = Math.min(10, pairsLength.toNumber());
+      
+      for (let i = 0; i < poolsToCheck; i++) {
         try {
           const pairAddress = await factoryContract.allPairs(i);
           const logs = await provider.getLogs({
@@ -321,7 +397,7 @@ export const createCommandExecutor = (
           });
           totalSwaps += logs.length;
         } catch (e) {
-          break; // Stop if we've reached the end of the pairs
+          console.error(`Error getting swaps for pair ${i}:`, e);
         }
       }
 
