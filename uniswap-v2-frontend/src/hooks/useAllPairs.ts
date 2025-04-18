@@ -6,6 +6,7 @@ import { FACTORY_ABI } from '../constants/abis/factory';
 import { PAIR_ABI } from '../constants/abis/pair';
 import { ERC20_ABI } from '../constants/abis/erc20';
 import { Token } from '../utils/tokens';
+import { WETH_ADDRESS } from '../constants/addresses';
 
 interface PairInfo {
   address: string;
@@ -102,7 +103,9 @@ export const useAllPairs = () => {
             symbol: token0Symbol,
             name: token0Name,
             decimals: token0Decimals,
-            logoURI: `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${token0Address}/logo.png`
+            logoURI: token0Address.toLowerCase() === WETH_ADDRESS.toLowerCase() 
+              ? 'https://assets.coingecko.com/coins/images/2518/small/weth.png'
+              : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${token0Address}/logo.png`
           };
 
           const token1: Token = {
@@ -110,7 +113,9 @@ export const useAllPairs = () => {
             symbol: token1Symbol,
             name: token1Name,
             decimals: token1Decimals,
-            logoURI: `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${token1Address}/logo.png`
+            logoURI: token1Address.toLowerCase() === WETH_ADDRESS.toLowerCase()
+              ? 'https://assets.coingecko.com/coins/images/2518/small/weth.png'
+              : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${token1Address}/logo.png`
           };
 
           return {

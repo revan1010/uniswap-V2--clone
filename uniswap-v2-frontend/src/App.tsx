@@ -6,30 +6,35 @@ import { Swap } from './components/Swap'
 import { Pool } from './components/Pool'
 import { NaturalLanguage } from './pages/NaturalLanguage'
 import { TestEvaluation } from './pages/TestEvaluation'
+import TokenBackground from './components/TokenBackground'
 import './App.css'
 
 function App() {
   return (
     <Web3Provider>
       <Router>
-        <div className="min-h-screen bg-dark text-white">
-          <Header />
-          <main className="container mx-auto py-6 px-4">
-            <h2 className="text-3xl font-bold text-center mb-6">
-              Uniswap V2 Interface
-            </h2>
+        <div className="relative min-h-screen overflow-hidden">
+          {/* Animated background */}
+          <TokenBackground />
+          
+          {/* Content */}
+          <div className="relative z-10">
+            <Header />
+            <main className="container mx-auto py-6 px-4 min-h-[calc(100vh-180px)]">
+              <Routes>
+                <Route path="/" element={<Swap />} />
+                <Route path="/pool" element={<Pool />} />
+                <Route path="/nl" element={<NaturalLanguage />} />
+                <Route path="/nl/test" element={<TestEvaluation/>} />
+                <Route path="/swap" element={<Swap />} />
+              </Routes>
+            </main>
             
-            <Routes>
-              <Route path="/" element={<Swap />} />
-              <Route path="/pool" element={<Pool />} />
-              <Route path="/nl" element={<NaturalLanguage />} />
-              <Route path="/nl/test" element={<TestEvaluation/>} />
-              <Route path="/" element={<Navigate to="/swap" replace />} />
-            </Routes>
-          </main>
-          <footer className="container mx-auto py-6 px-4 text-center text-gray-400">
-            <p>Uniswap V2 Frontend • Deployed on Fork Ethereum Mainnet</p>
-          </footer>
+            {/* Footer with glass effect */}
+            <footer className="glass-effect mt-auto py-4 px-4 text-center text-gray-400">
+              <p className="text-sm">Uniswap V2 Frontend • Deployed on Fork Ethereum Mainnet</p>
+            </footer>
+          </div>
         </div>
       </Router>
     </Web3Provider>

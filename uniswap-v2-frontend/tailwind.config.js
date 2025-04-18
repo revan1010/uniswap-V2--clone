@@ -13,6 +13,15 @@ export default {
         light: "#2C2F36",
         lighter: "#40444F",
       },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        }
+      },
+      animation: {
+        fadeIn: 'fadeIn 0.3s ease-out forwards'
+      }
     },
   },
   plugins: [],

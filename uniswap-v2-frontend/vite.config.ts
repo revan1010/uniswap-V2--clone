@@ -27,4 +27,25 @@ export default defineConfig({
       // Add any needed aliases
     }
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom', '@heroicons/react', 'react-icons/fa'],
+    exclude: [],
+    esbuildOptions: {
+      target: 'esnext'
+    }
+  },
+  build: {
+    target: 'esnext',
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    }
+  },
+  server: {
+    hmr: true,
+    watch: {
+      usePolling: true
+    },
+    force: true
+  }
 })

@@ -9,12 +9,15 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import { PairInfo } from '../hooks/usePairs';
 import { PairsList } from './PairsList';
 import { ReservesCurve } from './ReservesCurve';
+import { BsGearFill, BsPlusCircleFill, BsDashCircleFill } from 'react-icons/bs';
+import { FaExchangeAlt } from 'react-icons/fa';
+import { BiWater } from 'react-icons/bi';
 
 type PoolAction = 'add' | 'remove';
 
 export const Pool: React.FC = () => {
   const { account, routerContract, factoryContract, signer, isConnected, getERC20Contract } = useWeb3Context();
-  const [action, setAction] = useState<PoolAction>('add');
+  const [activeTab, setActiveTab] = useState<'add' | 'remove'>('add');
   const [tokenA, setTokenA] = useState<Token | null>(null);
   const [tokenB, setTokenB] = useState<Token | null>(null);
   const [amountA, setAmountA] = useState('');
@@ -524,10 +527,10 @@ export const Pool: React.FC = () => {
 
   // If amountA changes and pair exists, calculate amountB
   useEffect(() => {
-    if (action === 'add') {
+    if (activeTab === 'add') {
       calculateAmountB();
     }
-  }, [amountA, tokenA, tokenB, pair, action, calculateAmountB]);
+  }, [amountA, tokenA, tokenB, pair, activeTab, calculateAmountB]);
 
   // Add this function to fetch the LP token balance for a selected pair
   const fetchLPTokenBalance = useCallback(async (pairAddress: string) => {
@@ -555,14 +558,14 @@ export const Pool: React.FC = () => {
 
   // Move the useEffect hooks to component level
   useEffect(() => {
-    if (selectedPair && action === 'remove') {
+    if (selectedPair && activeTab === 'remove') {
       fetchLPTokenBalance(selectedPair.address).then(balance => {
         setLpTokenBalance(balance);
         // Set initial liquidity amount to the full balance
         setLiquidity(balance);
       });
     }
-  }, [selectedPair, action, fetchLPTokenBalance]);
+  }, [selectedPair, activeTab, fetchLPTokenBalance]);
   
   useEffect(() => {
     if (selectedPair && liquidity && parseFloat(liquidity) > 0) {
@@ -754,134 +757,148 @@ export const Pool: React.FC = () => {
   // Add the renderAddLiquidity function back
   const renderAddLiquidity = () => {
     return (
-      <div className="p-6 bg-darker rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4 text-white">Add Liquidity</h2>
-        
-        {!isConnected ? (
-          <div className="text-center p-4 bg-dark rounded">
-            <p className="text-gray-400">Please connect your wallet to add liquidity.</p>
-          </div>
-        ) : (
-          <>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-300 mb-1">Token A</label>
-              <div className="flex items-center">
-                <div className="flex-grow">
-                  <input
-                    type="number"
-                    value={amountA}
-                    onChange={(e) => setAmountA(e.target.value)}
-                    placeholder="0.0"
-                    className="w-full p-2 border rounded bg-dark text-white border-gray-700"
-                  />
-                </div>
-                <div className="ml-2">
-                  <TokenSelector
-                    selectedToken={tokenA}
-                    onSelectToken={setTokenA}
-                    otherSelectedToken={tokenB}
-                    label="Token A"
-                  />
-                </div>
-              </div>
+      <div className="space-y-4">
+        {/* Token A Input */}
+        <div className="relative">
+          <div className="bg-gray-900/50 rounded-xl p-4">
+            <div className="flex justify-between mb-2">
+              <label className="text-sm text-gray-400">Token A</label>
               {tokenA && (
-                <div className="text-sm text-gray-400 mt-1">
+                <span className="text-sm text-gray-400">
                   Balance: {formatAmount(balanceA.toString(), tokenA.decimals)}
-                </div>
+                </span>
               )}
             </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-300 mb-1">Token B</label>
-              <div className="flex items-center">
-                <div className="flex-grow">
-                  <input
-                    type="number"
-                    value={amountB}
-                    onChange={(e) => setAmountB(e.target.value)}
-                    placeholder="0.0"
-                    className="w-full p-2 border rounded bg-dark text-white border-gray-700"
-                  />
-                </div>
-                <div className="ml-2">
-                  <TokenSelector
-                    selectedToken={tokenB}
-                    onSelectToken={setTokenB}
-                    otherSelectedToken={tokenA}
-                    label="Token B"
-                  />
-                </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                value={amountA}
+                onChange={(e) => setAmountA(e.target.value)}
+                className="w-full bg-transparent text-2xl font-medium focus:outline-none text-white"
+                placeholder="0.0"
+              />
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition-colors min-w-[140px]">
+                <TokenSelector
+                  selectedToken={tokenA}
+                  onSelectToken={setTokenA}
+                  otherSelectedToken={tokenB}
+                />
               </div>
+            </div>
+          </div>
+
+          {/* Plus Icon */}
+          <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+            <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center">
+              <BsPlusCircleFill className="w-5 h-5 text-pink-500" />
+            </div>
+          </div>
+
+          {/* Token B Input */}
+          <div className="bg-gray-900/50 rounded-xl p-4 mt-2">
+            <div className="flex justify-between mb-2">
+              <label className="text-sm text-gray-400">Token B</label>
               {tokenB && (
-                <div className="text-sm text-gray-400 mt-1">
+                <span className="text-sm text-gray-400">
                   Balance: {formatAmount(balanceB.toString(), tokenB.decimals)}
-                </div>
+                </span>
               )}
             </div>
-            
-            {pair && (
-              <div className="p-3 mb-4 bg-dark rounded border border-gray-700">
-                <h3 className="font-medium mb-1 text-gray-300">Existing Pool Information</h3>
-                <div className="text-sm text-gray-400">
-                  <div>Token A: {pair.token0.symbol} - {formatAmount(pair.reserves.reserve0.toString(), pair.token0.decimals)}</div>
-                  <div>Token B: {pair.token1.symbol} - {formatAmount(pair.reserves.reserve1.toString(), pair.token1.decimals)}</div>
-                </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                value={amountB}
+                onChange={(e) => setAmountB(e.target.value)}
+                className="w-full bg-transparent text-2xl font-medium focus:outline-none text-white"
+                placeholder="0.0"
+              />
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition-colors min-w-[140px]">
+                <TokenSelector
+                  selectedToken={tokenB}
+                  onSelectToken={setTokenB}
+                  otherSelectedToken={tokenA}
+                />
               </div>
-            )}
-            
-            <button
-              onClick={handleAddLiquidity}
-              disabled={!tokenA || !tokenB || !amountA || !amountB || isProcessing}
-              className={`w-full py-2 rounded font-medium ${
-                !tokenA || !tokenB || !amountA || !amountB || isProcessing
-                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                  : 'bg-primary text-white hover:bg-pink-700'
-              }`}
-            >
-              {isProcessing ? 'Processing...' : 'Add Liquidity'}
-            </button>
-          </>
+            </div>
+          </div>
+        </div>
+
+        {/* Pool Information */}
+        {pair && (
+          <div className="bg-gray-900/50 rounded-xl p-4">
+            <h3 className="text-xl font-medium mb-4">Pool Information</h3>
+            <div className="space-y-3">
+             
+          
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Token A: {pair.token0.symbol}</span>
+                <span className="text-white">{formatAmount(pair.reserves.reserve0.toString(), pair.token0.decimals)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Token B: {pair.token1.symbol}</span>
+                <span className="text-white">{formatAmount(pair.reserves.reserve1.toString(), pair.token1.decimals)}</span>
+              </div>
+            </div>
+          </div>
         )}
+
+        <button
+          onClick={handleAddLiquidity}
+          disabled={!tokenA || !tokenB || !amountA || !amountB || isProcessing || !isConnected}
+          className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-4 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:from-pink-600 hover:to-purple-600 transition-all"
+        >
+          {!isConnected 
+            ? 'Connect Wallet' 
+            : isProcessing 
+              ? 'Processing...' 
+              : 'Add Liquidity'
+          }
+        </button>
       </div>
     );
   };
 
   return (
-    <div className="space-y-4">
-      <div className="bg-light rounded-lg shadow-md p-4 w-full max-w-md mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-white">Pool</h3>
-          <button className="text-gray-400 hover:text-white" onClick={() => {}}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-            </svg>
+    <div className="max-w-2xl mx-auto">
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent flex items-center gap-2">
+            <BiWater className="w-6 h-6" />
+            Pool
+          </h2>
+          <button className="p-2 rounded-xl hover:bg-gray-700/50 transition-colors">
+            <BsGearFill className="w-5 h-5 text-gray-400 hover:text-white" />
           </button>
         </div>
-        
-        <div className="flex space-x-2 mb-4">
+
+        {/* Tab Navigation */}
+        <div className="flex gap-2 p-1 bg-gray-900/50 rounded-xl mb-6">
           <button
-            className={`flex-1 py-2 rounded-lg font-medium ${
-              action === 'add'
-                ? 'bg-primary text-white'
-                : 'bg-dark text-gray-400 hover:text-white'
+            onClick={() => setActiveTab('add')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all ${
+              activeTab === 'add'
+                ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
             }`}
-            onClick={() => setAction('add')}
           >
+            <BsPlusCircleFill className="w-4 h-4" />
             Add
           </button>
           <button
-            className={`flex-1 py-2 rounded-lg font-medium ${
-              action === 'remove'
-                ? 'bg-primary text-white'
-                : 'bg-dark text-gray-400 hover:text-white'
+            onClick={() => setActiveTab('remove')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all ${
+              activeTab === 'remove'
+                ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
             }`}
-            onClick={() => setAction('remove')}
           >
+            <BsDashCircleFill className="w-4 h-4" />
             Remove
           </button>
         </div>
-        
-        {action === 'add' ? renderAddLiquidity() : renderRemoveLiquidity()}
+
+        {/* Add Liquidity Form */}
+        {activeTab === 'add' ? renderAddLiquidity() : renderRemoveLiquidity()}
       </div>
 
       {/* Add the PairsList component */}

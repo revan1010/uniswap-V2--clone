@@ -1,3 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-gradient: linear-gradient(135deg, #FF007A 0%, #7A3BFC 100%);
+  --background-gradient: radial-gradient(circle at center top, 
+    rgba(55, 47, 71, 0.5) 0%, 
+    rgba(23, 22, 29, 0.9) 50%,
+    rgba(12, 11, 15, 1) 100%
+  );
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: rgb(13, 17, 28);
+  background: linear-gradient(180deg, rgba(13, 17, 28, 1) 0%, rgba(17, 23, 39, 1) 100%);
+  color: white;
+}
+
+.bg-dark {
+  background-color: rgba(13, 17, 28, 0.7);
+}
+
+.bg-darker {
+  background-color: rgba(8, 11, 19, 0.8);
+}
+
+/* Add a subtle gradient animation to the background */
+.bg-animate {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: var(--background-gradient);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Glass effect for cards */
+.glass-effect {
+  background: rgba(13, 17, 28, 0.7);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(13, 17, 28, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -39,4 +127,19 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Token background animation styles */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.token-bg-image {
+  animation: pulse 4s ease-in-out infinite;
+  will-change: transform, opacity;
 }

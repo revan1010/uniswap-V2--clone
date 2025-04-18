@@ -450,18 +450,18 @@ export const Swap: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="bg-light rounded-lg shadow-md p-4 w-full max-w-md mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-white">Swap</h3>
-          <button className="text-gray-400 hover:text-white" onClick={() => {}}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <div className="glass-effect rounded-2xl shadow-xl p-6 w-full max-w-md mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-2xl font-bold gradient-text">Swap</h3>
+          <button className="p-2 rounded-xl hover:bg-gray-800/50 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 hover:text-white" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
             </svg>
           </button>
         </div>
         
         {/* Input amount */}
-        <div className="bg-dark rounded-lg p-4 mb-2">
+        <div className="bg-gray-900/30 backdrop-blur-md rounded-xl p-4 mb-2 z-10">
           <div className="flex justify-between mb-2">
             <div className="text-sm text-gray-400">You pay</div>
             {tokenIn && (
@@ -470,37 +470,39 @@ export const Swap: React.FC = () => {
               </div>
             )}
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center gap-3">
             <input
               type="text"
-              className="bg-transparent text-white text-2xl font-medium focus:outline-none w-full"
+              className="bg-transparent text-2xl font-medium focus:outline-none w-full text-white"
               placeholder="0.0"
               value={inputAmount}
               onChange={(e) => handleInputChange(e.target.value)}
             />
-            <TokenSelector
-              selectedToken={tokenIn}
-              onSelectToken={setTokenIn}
-              otherSelectedToken={tokenOut}
-              label="You pay"
-            />
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors min-w-[140px]">
+              <TokenSelector
+                selectedToken={tokenIn}
+                onSelectToken={setTokenIn}
+                otherSelectedToken={tokenOut}
+                label="You pay"
+              />
+            </div>
           </div>
         </div>
         
         {/* Swap direction button */}
         <div className="flex justify-center -my-3 z-10 relative">
           <button
-            className="bg-dark rounded-full p-2 border border-light hover:border-primary transition-colors"
+            className="bg-gray-900/50 backdrop-blur-md rounded-full p-2 border border-gray-700/50 hover:border-pink-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-pink-500/20"
             onClick={switchTokens}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-pink-500" viewBox="0 0 20 20" fill="currentColor">
               <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" />
             </svg>
           </button>
         </div>
         
         {/* Output amount */}
-        <div className="bg-dark rounded-lg p-4 mb-4">
+        <div className="bg-gray-900/30 backdrop-blur-md rounded-xl p-4 mb-4">
           <div className="flex justify-between mb-2">
             <div className="text-sm text-gray-400">You receive</div>
             {tokenOut && (
@@ -509,36 +511,39 @@ export const Swap: React.FC = () => {
               </div>
             )}
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center gap-3">
             <input
               type="text"
-              className="bg-transparent text-white text-2xl font-medium focus:outline-none w-full"
+              className="bg-transparent text-2xl font-medium focus:outline-none w-full text-white"
               placeholder="0.0"
               value={outputAmount}
               onChange={(e) => handleOutputChange(e.target.value)}
             />
-            <TokenSelector
-              selectedToken={tokenOut}
-              onSelectToken={setTokenOut}
-              otherSelectedToken={tokenIn}
-              label="You receive"
-            />
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors min-w-[140px]">
+              <TokenSelector
+                selectedToken={tokenOut}
+                onSelectToken={setTokenOut}
+                otherSelectedToken={tokenIn}
+                label="You receive"
+              />
+            </div>
           </div>
         </div>
         
         {/* Route information */}
         {currentPath.length > 0 && (
-          <SwapRoute path={currentPath} amounts={pathAmounts} />
+          <div className="bg-gray-900/30 backdrop-blur-md rounded-xl p-3 mb-4">
+            <SwapRoute path={currentPath} amounts={pathAmounts} />
+          </div>
         )}
         
         {/* Price information */}
         {tokenIn && tokenOut && inputAmount && outputAmount && (
-          <div className="bg-darker rounded-lg p-3 mb-4 text-sm">
-            <div className="flex justify-between mb-1">
-              <div className="text-gray-400">Price</div>
-              <div className="text-white">
+          <div className="bg-gray-900/30 backdrop-blur-md rounded-xl p-4 mb-4 text-sm space-y-2">
+            <div className="flex justify-between items-center">
+              <div className="text-gray-400">Rate</div>
+              <div className="text-white font-medium">
                 {(() => {
-                  // Determine if tokens are ETH or WETH
                   const isEthIn = tokenIn.address === "ETH";
                   const isEthOut = tokenOut.address === "ETH";
                   
@@ -547,13 +552,11 @@ export const Swap: React.FC = () => {
                   } else if (isEthOut && tokenIn.address === WETH_ADDRESS) {
                     return '1 WETH = 1 ETH';
                   } else {
-                    // Get amounts in BigNumber format
                     const amountInBN = parseAmount(inputAmount, tokenIn.decimals);
                     const amountOutBN = parseAmount(outputAmount, tokenOut.decimals);
                     
                     if (amountInBN && amountOutBN && !amountInBN.isZero()) {
-                      // Calculate price using BigNumber arithmetic to maintain precision
-                      const scaleFactor = ethers.BigNumber.from(10).pow(18); // Use 18 decimals for precision
+                      const scaleFactor = ethers.BigNumber.from(10).pow(18);
                       const price = amountOutBN.mul(scaleFactor).div(amountInBN);
                       const priceFormatted = formatAmount(price.toString(), 18);
                       return `1 ${tokenIn.symbol} = ${priceFormatted} ${tokenOut.symbol}`;
@@ -573,9 +576,15 @@ export const Swap: React.FC = () => {
               return !(isEthIn && tokenOut.address === WETH_ADDRESS) && 
                      !(isEthOut && tokenIn.address === WETH_ADDRESS);
             })() && (
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <div className="text-gray-400">Price Impact</div>
-                <div className={`${priceImpact > 5 ? 'text-red-500' : priceImpact > 1 ? 'text-yellow-500' : 'text-green-500'}`}>
+                <div className={`font-medium ${
+                  priceImpact > 5 
+                    ? 'text-red-500' 
+                    : priceImpact > 1 
+                      ? 'text-yellow-500' 
+                      : 'text-green-500'
+                }`}>
                   {priceImpact.toFixed(2)}%
                 </div>
               </div>
@@ -585,14 +594,14 @@ export const Swap: React.FC = () => {
         
         {/* Action button */}
         <button
-          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+          className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-200 ${
             !isConnected || !tokenIn || !tokenOut || !inputAmount || !outputAmount
-              ? 'bg-lighter text-gray-400 cursor-not-allowed'
+              ? 'bg-gray-700/50 text-gray-400 cursor-not-allowed'
               : swapStatus === 'success'
-                ? 'bg-green-600 text-white'
+                ? 'bg-green-500/80 text-white hover:bg-green-600/80'
                 : swapStatus === 'retrying'
-                  ? 'bg-yellow-600 text-white'
-                  : 'bg-primary text-white hover:bg-opacity-90'
+                  ? 'bg-yellow-500/80 text-white'
+                  : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 hover:shadow-lg hover:shadow-pink-500/20'
           }`}
           disabled={!isConnected || !tokenIn || !tokenOut || !inputAmount || !outputAmount || isApproving || isSwapping}
           onClick={isConnected ? handleSwap : () => {}}
@@ -605,23 +614,27 @@ export const Swap: React.FC = () => {
       {tokenIn && tokenOut && pair && provider && (
         <>
           <div className="mt-8">
-            <h3 className="text-xl font-semibold text-white mb-4">Reserves Curve</h3>
-            <ReservesCurve
-              token0={tokenIn}
-              token1={tokenOut}
-              reserve0={pair.reserves.reserve0}
-              reserve1={pair.reserves.reserve1}
-            />
+            <h3 className="text-xl font-semibold gradient-text mb-4">Reserves Curve</h3>
+            <div className="glass-effect rounded-2xl p-6">
+              <ReservesCurve
+                token0={tokenIn}
+                token1={tokenOut}
+                reserve0={pair.reserves.reserve0}
+                reserve1={pair.reserves.reserve1}
+              />
+            </div>
           </div>
 
           <div className="mt-8">
-            <h3 className="text-xl font-semibold text-white mb-4">Historical Swap Prices</h3>
-            <SwapPriceDistribution
-              token0={tokenIn}
-              token1={tokenOut}
-              pairAddress={pair.address}
-              provider={provider}
-            />
+            <h3 className="text-xl font-semibold gradient-text mb-4">Historical Swap Prices</h3>
+            <div className="glass-effect rounded-2xl p-6">
+              <SwapPriceDistribution
+                token0={tokenIn}
+                token1={tokenOut}
+                pairAddress={pair.address}
+                provider={provider}
+              />
+            </div>
           </div>
         </>
       )}
