@@ -2,6 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useWeb3Context } from '../context/Web3Context';
 
+const UNI_LOGO_URL = 'https://assets.coingecko.com/coins/images/12504/small/uniswap-uni.png';
+
 export const Header = () => {
   const { account, disconnectWallet, connectWallet } = useWeb3Context();
   const location = useLocation();
@@ -16,12 +18,19 @@ export const Header = () => {
 
   return (
     <header className="border-b border-gray-800/50 backdrop-blur-xl bg-gray-900/40">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-3">
         <nav className="flex items-center justify-between">
           {/* Logo and Nav Links */}
           <div className="flex items-center gap-12">
-            <Link to="/" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500">
-              Uniswap V2
+            <Link to="/" className="flex items-center gap-3 group">
+              <img 
+                src={UNI_LOGO_URL}
+                alt="UNI Token" 
+                className="w-12 h-12 rounded-full shadow-lg shadow-pink-500/20 group-hover:shadow-pink-500/40 group-hover:rotate-12 transition-all duration-300"
+              />
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500">
+                Uniswap V2
+              </span>
             </Link>
             
             <div className="flex items-center gap-2">
