@@ -20,9 +20,10 @@ const getGasSettings = (isEstimationFailed = false) => {
 
 export interface CommandExecutor {
   swapTokens: (params: {
-    amountIn: string;
+    amount: string;
     tokenIn: string;
     tokenOut: string;
+    exactType: 'input' | 'output';
   }) => Promise<{
     success: boolean;
     error?: string;
@@ -81,9 +82,10 @@ export const createCommandExecutor = (
   signer: ethers.Signer | null
 ): CommandExecutor => {
   const executeSwap = async (params: {
-    amountIn: string;
+    amount: string;
     tokenIn: string;
     tokenOut: string;
+    exactType: 'input' | 'output';
   }) => {
     try {
       if (!account || !routerContract || !provider || !signer) {
@@ -104,8 +106,8 @@ export const createCommandExecutor = (
         };
       }
 
-      // Parse amount
-      const amountIn = parseAmount(params.amountIn, tokenIn.decimals);
+      const isExactInput = params.exactType === 'input';
+      const amount = parseAmount(params.amount, isExactInput ? tokenIn.decimals : tokenOut.decimals);
       
       // Find best path
       const path = await findBestPath(tokenIn, tokenOut, provider);
@@ -113,9 +115,17 @@ export const createCommandExecutor = (
         token.address === "ETH" ? WETH_ADDRESS : token.address
       );
 
-      // Get minimum output amount (with 5% slippage)
-      const amounts = await routerContract.getAmountsOut(amountIn, pathAddresses);
-      const amountOutMin = amounts[amounts.length - 1].mul(95).div(100); // 5% slippage
+      // Get amounts for slippage calculation
+      let amountIn, amountInMax, amountOut, amountOutMin;
+      if (isExactInput) {
+        const amounts = await routerContract.getAmountsOut(amount, pathAddresses);
+        amountIn = amount;
+        amountOutMin = amounts[amounts.length - 1].mul(95).div(100); // 5% slippage
+      } else {
+        const amounts = await routerContract.getAmountsIn(amount, pathAddresses);
+        amountOut = amount;
+        amountInMax = amounts[0].mul(105).div(100); // 5% slippage
+      }
 
       // Setup transaction parameters
       const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes
@@ -130,7 +140,8 @@ export const createCommandExecutor = (
           signer
         );
         const allowance = await tokenContract.allowance(account, routerContract.address);
-        if (allowance.lt(amountIn)) {
+        const requiredAmount = isExactInput ? amountIn : amountInMax;
+        if (allowance.lt(requiredAmount)) {
           // Approve
           const erc20Contract = new ethers.Contract(
             tokenIn.address,
@@ -149,35 +160,70 @@ export const createCommandExecutor = (
       const isEthOut = tokenOut.address === "ETH";
       let tx;
 
-      if (isEthIn) {
-        tx = await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
-          amountOutMin,
-          pathAddresses,
-          account,
-          deadline,
-          { 
-            ...overrides,
-            value: amountIn 
-          }
-        );
-      } else if (isEthOut) {
-        tx = await routerContract.swapExactTokensForETHSupportingFeeOnTransferTokens(
-          amountIn,
-          amountOutMin,
-          pathAddresses,
-          account,
-          deadline,
-          overrides
-        );
+      if (isExactInput) {
+        // Exact input swaps
+        if (isEthIn) {
+          tx = await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
+            amountOutMin,
+            pathAddresses,
+            account,
+            deadline,
+            { 
+              ...overrides,
+              value: amountIn 
+            }
+          );
+        } else if (isEthOut) {
+          tx = await routerContract.swapExactTokensForETHSupportingFeeOnTransferTokens(
+            amountIn,
+            amountOutMin,
+            pathAddresses,
+            account,
+            deadline,
+            overrides
+          );
+        } else {
+          tx = await routerContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            amountIn,
+            amountOutMin,
+            pathAddresses,
+            account,
+            deadline,
+            overrides
+          );
+        }
       } else {
-        tx = await routerContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-          amountIn,
-          amountOutMin,
-          pathAddresses,
-          account,
-          deadline,
-          overrides
-        );
+        // Exact output swaps
+        if (isEthIn) {
+          tx = await routerContract.swapETHForExactTokens(
+            amountOut,
+            pathAddresses,
+            account,
+            deadline,
+            { 
+              ...overrides,
+              value: amountInMax 
+            }
+          );
+        } else if (isEthOut) {
+          tx = await routerContract.swapTokensForExactETH(
+            amountOut,
+            amountInMax,
+            pathAddresses,
+            account,
+            deadline,
+            overrides
+          );
+        } else {
+          tx = await routerContract.swapTokensForExactTokens(
+            amountOut,
+            amountInMax,
+            pathAddresses,
+            account,
+            deadline,
+            overrides
+          );
+        }
       }
 
       const receipt = await tx.wait();

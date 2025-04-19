@@ -318,17 +318,30 @@ export const Swap: React.FC = () => {
         token.address === "ETH" ? WETH_ADDRESS : token.address
       );
       
-      console.log("Swap path:", pathAddresses);
+      console.log("Swap function called:", swapDirection === 'exactIn' ? 'swapExactTokensForTokens' : 'swapTokensForExactTokens');
       
-      const amountIn = parseAmount(inputAmount, tokenIn.decimals);
-      const amountOutMin = parseAmount(
-        (parseFloat(outputAmount) * 0.95).toString(), // 5% slippage
-        tokenOut.decimals
-      );
+      // Parse amounts based on swap direction
+      let amountIn, amountInMax, amountOut, amountOutMin;
+      if (swapDirection === 'exactIn') {
+        amountIn = parseAmount(inputAmount, tokenIn.decimals);
+        amountOutMin = parseAmount(
+          (parseFloat(outputAmount) * 0.95).toString(), // 5% slippage
+          tokenOut.decimals
+        );
+      } else {
+        amountOut = parseAmount(outputAmount, tokenOut.decimals);
+        amountInMax = parseAmount(
+          (parseFloat(inputAmount) * 1.05).toString(), // 5% slippage
+          tokenIn.decimals
+        );
+      }
       
       console.log("Swap amounts:", {
-        amountIn: amountIn.toString(),
-        amountOutMin: amountOutMin.toString()
+        direction: swapDirection,
+        amountIn: amountIn?.toString(),
+        amountInMax: amountInMax?.toString(),
+        amountOut: amountOut?.toString(),
+        amountOutMin: amountOutMin?.toString()
       });
 
       // Get initial gas settings
@@ -344,42 +357,78 @@ export const Swap: React.FC = () => {
             signer
           );
           const allowance = await tokenContract.allowance(account, routerContract.address);
-          if (allowance.lt(amountIn)) {
+          const requiredAmount = swapDirection === 'exactIn' ? amountIn : amountInMax;
+          if (allowance.lt(requiredAmount)) {
             await handleApprove();
           }
         }
 
         let tx;
         
-        if (isEthIn) {
-          tx = await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
-            amountOutMin,
-            pathAddresses,
-            account,
-            deadline,
-            { 
-              ...overrides,
-              value: amountIn 
-            }
-          );
-        } else if (isEthOut) {
-          tx = await routerContract.swapExactTokensForETHSupportingFeeOnTransferTokens(
-            amountIn,
-            amountOutMin,
-            pathAddresses,
-            account,
-            deadline,
-            overrides
-          );
+        if (swapDirection === 'exactIn') {
+          // Exact input swaps
+          if (isEthIn) {
+            tx = await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
+              amountOutMin,
+              pathAddresses,
+              account,
+              deadline,
+              { 
+                ...overrides,
+                value: amountIn 
+              }
+            );
+          } else if (isEthOut) {
+            tx = await routerContract.swapExactTokensForETHSupportingFeeOnTransferTokens(
+              amountIn,
+              amountOutMin,
+              pathAddresses,
+              account,
+              deadline,
+              overrides
+            );
+          } else {
+            tx = await routerContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+              amountIn,
+              amountOutMin,
+              pathAddresses,
+              account,
+              deadline,
+              overrides
+            );
+          }
         } else {
-          tx = await routerContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-            amountIn,
-            amountOutMin,
-            pathAddresses,
-            account,
-            deadline,
-            overrides
-          );
+          // Exact output swaps
+          if (isEthIn) {
+            tx = await routerContract.swapETHForExactTokens(
+              amountOut,
+              pathAddresses,
+              account,
+              deadline,
+              { 
+                ...overrides,
+                value: amountInMax 
+              }
+            );
+          } else if (isEthOut) {
+            tx = await routerContract.swapTokensForExactETH(
+              amountOut,
+              amountInMax,
+              pathAddresses,
+              account,
+              deadline,
+              overrides
+            );
+          } else {
+            tx = await routerContract.swapTokensForExactTokens(
+              amountOut,
+              amountInMax,
+              pathAddresses,
+              account,
+              deadline,
+              overrides
+            );
+          }
         }
         
         setSwapStatus('swapping');
@@ -395,22 +444,39 @@ export const Swap: React.FC = () => {
           
           // Retry with higher gas and 10% more slippage
           overrides = getGasSettings(true);
-          const newAmountOutMin = amountOutMin.mul(90).div(100);
           
-          if (isEthIn) {
-            await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
-              newAmountOutMin,
-              pathAddresses,
-              account,
-              deadline,
-              { 
-                ...overrides,
-                value: amountIn 
-              }
-            );
+          if (swapDirection === 'exactIn') {
+            if (!amountOutMin) return;
+            const newAmountOutMin = amountOutMin.mul(90).div(100);
+            if (isEthIn) {
+              await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
+                newAmountOutMin,
+                pathAddresses,
+                account,
+                deadline,
+                { 
+                  ...overrides,
+                  value: amountIn 
+                }
+              );
+            }
           } else {
-            throw new Error("Please try again with a smaller amount or more slippage tolerance");
+            if (!amountInMax || !amountOut) return;
+            const newAmountInMax = amountInMax.mul(110).div(100);
+            if (isEthIn) {
+              await routerContract.swapETHForExactTokens(
+                amountOut,
+                pathAddresses,
+                account,
+                deadline,
+                { 
+                  ...overrides,
+                  value: newAmountInMax 
+                }
+              );
+            }
           }
+          throw new Error("Please try again with a smaller amount or more slippage tolerance");
         } else if (error.message.includes("INSUFFICIENT_OUTPUT_AMOUNT")) {
           throw new Error("Price impact too high. Try a smaller trade size.");
         } else {

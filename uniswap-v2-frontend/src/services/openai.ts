@@ -12,9 +12,9 @@ const FUNCTION_DEFINITIONS = [
     parameters: {
       type: 'object',
       properties: {
-        amountIn: {
+        amount: {
           type: 'string',
-          description: 'The amount of input tokens to swap'
+          description: 'The amount to swap'
         },
         tokenIn: {
           type: 'string',
@@ -23,9 +23,14 @@ const FUNCTION_DEFINITIONS = [
         tokenOut: {
           type: 'string',
           description: 'The symbol of the output token'
+        },
+        exactType: {
+          type: 'string',
+          description: 'Whether the amount specified is the exact input or exact output amount',
+          enum: ['input', 'output']
         }
       },
-      required: ['amountIn', 'tokenIn', 'tokenOut']
+      required: ['amount', 'tokenIn', 'tokenOut', 'exactType']
     }
   },
   {
@@ -126,11 +131,26 @@ export const processNaturalLanguage = async (command: string) => {
       messages: [
         {
           role: 'system',
-          content: `You are a helpful assistant that processes natural language commands for a Uniswap V2 interface. 
-          You should interpret user commands and map them to the appropriate function calls.
-          For liquidity commands, if the user only specifies one amount, you should use addLiquidity with just amount0 
-          and let the system calculate the optimal amount1.
-          Common token symbols: ETH, WETH, USDC, USDT, DAI, LINK, UNI, WBTC`
+          content: `You are a helpful assistant that processes natural language commands for a Uniswap V2 interface.
+          
+          For swap commands, you should determine if it's an exact input or exact output swap:
+          - Exact Input Examples:
+            "Swap 1 ETH for USDC"
+            "Sell 100 USDC for ETH"
+            "Trade 50 LINK to UNI"
+            Here, the input amount is exact and output will be at least minimum amount.
+          
+          - Exact Output Examples:
+            "Get me exactly 1000 USDC using ETH"
+            "I want to receive 2 ETH by selling USDC"
+            "Buy exactly 100 UNI with LINK"
+            Here, the output amount is exact and input will be at most maximum amount.
+          
+          Common token symbols: ETH, WETH, USDC, USDT, DAI, LINK, UNI, WBTC
+          
+          Always set exactType to:
+          - 'input' when user specifies input amount
+          - 'output' when user specifies output amount`
         },
         {
           role: 'user',
