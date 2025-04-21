@@ -1,54 +1,96 @@
-# React + TypeScript + Vite
+# 🦄 Uniswap V2  with AI Integration
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<div align="center">
+  <img src="public/uniswap-v2-banner.png" alt="Uniswap V2 Clone Banner" width="800px" />
+  
+  [![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC.svg)](https://tailwindcss.com/)
+  [![Vite](https://img.shields.io/badge/Vite-5.x-646CFF.svg)](https://vitejs.dev/)
+  [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+</div>
 
-Currently, two official plugins are available:
+## 🌟 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 💱 **Full Swap Functionality**: Exact Input and Exact Output swaps with ETH and ERC20 tokens
+- 🏊‍♂️ **Liquidity Pool Management**: Add and remove liquidity with real-time pool statistics
+- 🤖 **AI-Powered Natural Language Interface**: Execute trades and manage liquidity using plain English
+- 📊 **Advanced Analytics**: Track pool performance, volume, and liquidity metrics
+- 🎨 **Modern UI/UX**: Sleek interface with glass morphism design and responsive layouts
+- 🔒 **Web3 Integration**: Seamless wallet connection and transaction management
 
-## Expanding the ESLint configuration
+## 🚀 Quick Start
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- Node.js
+- Git
+- MetaMask or any Web3 wallet
+- Yarn or npm
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone 
+   cd uniswap-v2-clone/uniswap-v2-frontend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   yarn install
+   # or
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` with your configuration:
+   ```env
+  
+   VITE_OPENAI_API_KEY=your_openai_key
+  
+   ```
+
+4. **Start the development server**
+   ```bash
+   yarn dev
+   # or
+   npm run dev
+   ```
+
+5. **Open your browser**
+   Navigate to `http://localhost:5173`
+
+## 🏗️ Project Structure
+
+```
+uniswap-v2-frontend/
+├── src/
+│   ├── components/          # Reusable UI components
+│   ├── context/            # React context providers
+│   ├── hooks/              # Custom React hooks
+│   ├── pages/              # Page components
+│   ├── services/           # API and blockchain services
+│   ├── styles/             # Global styles and animations
+│   └── utils/              # Helper functions and constants
+├── public/                 # Static assets
+├── tests/                  # Test files
+└── config/                 # Configuration files
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## 🙏 Acknowledgments
+
+- [Uniswap V2 Whitepaper](https://uniswap.org/whitepaper.pdf)
+- [Ethereum Development Documentation](https://ethereum.org/developers/)
+- [OpenAI API Documentation](https://platform.openai.com/docs/)
+
+## 🔗 Links
+
+- [Live Demo](https://your-demo-link.com)
+
+---
