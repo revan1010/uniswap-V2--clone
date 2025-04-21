@@ -11,12 +11,13 @@ export const RPC_URL = 'https://virtual.mainnet.rpc.tenderly.co/cec2fc9b-6122-43
 // Test tokens to display in the UI
 export const TEST_TOKENS: Token[] = [
   {
-    symbol: 'ETH',
-    name: 'Ethereum',
-    address: 'ETH',
+    symbol: 'LINK',
+    name: 'Chainlink',
+    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
     decimals: 18,
-    logoURI: 'https://assets.coingecko.com/coins/images/279/standard/ethereum.png?1696501628'
+    logoURI: 'https://assets.coingecko.com/coins/images/877/standard/chainlink-new-logo.png?1696502009'
   },
+ 
   {
     symbol: 'WETH',
     name: 'Wrapped Ether',
@@ -59,12 +60,12 @@ export const TEST_TOKENS: Token[] = [
     address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
     decimals: 18,
     logoURI: 'https://assets.coingecko.com/coins/images/12504/small/uniswap-uni.png'
-  },
-  {
-    symbol: 'LINK',
-    name: 'Chainlink',
-    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+  }, {
+    symbol: 'ETH',
+    name: 'Ethereum',
+    address: 'ETH',
     decimals: 18,
-    logoURI: 'https://assets.coingecko.com/coins/images/877/standard/chainlink-new-logo.png?1696502009'
-  }
+    logoURI: 'https://assets.coingecko.com/coins/images/279/standard/ethereum.png?1696501628'
+  },
+
 ]; 

@@ -23,6 +23,7 @@
 - 💱 **Full Swap Functionality**: Exact Input and Exact Output swaps with ETH and ERC20 tokens
 - 🏊‍♂️ **Liquidity Pool Management**: Add and remove liquidity with real-time pool statistics
 - 🤖 **AI-Powered Natural Language Interface**: Execute trades and manage liquidity using plain English
+- 🎙️ **Voice Commands**: Native Web Speech API integration for hands-free trading
 - 📊 **Advanced Analytics**: Track pool performance, volume, and liquidity metrics
 - 🎨 **Modern UI/UX**: Sleek interface with glass morphism design and responsive layouts
 - 🔒 **Web3 Integration**: Seamless wallet connection and transaction management

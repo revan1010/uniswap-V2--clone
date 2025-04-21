@@ -308,9 +308,9 @@ export const NaturalLanguage: React.FC = () => {
           <div className="mt-6 space-y-2">
             <div className="text-sm font-medium text-gray-400">Example commands:</div>
             <div className="space-y-2 text-sm text-gray-500">
-              <div className="bg-gray-800/30 p-2 rounded-lg">"swap 50 DAI for ETH"</div>
-              <div className="bg-gray-800/30 p-2 rounded-lg">"show my liquidity positions"</div>
-              <div className="bg-gray-800/30 p-2 rounded-lg">"get price of UNI in USDC"</div>
+              <div className="bg-gray-800/30 p-2 rounded-lg">"swap 10 LINK for WETH"</div>
+              <div className="bg-gray-800/30 p-2 rounded-lg">" add liquidity of 4 WETH in WETH-LINK pool"</div>
+              <div className="bg-gray-800/30 p-2 rounded-lg">" how many swaps have been so far today for UNI-WETH pool"</div>
             </div>
           </div>
         )}
