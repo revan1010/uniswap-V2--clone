@@ -8,6 +8,14 @@
   [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC.svg)](https://tailwindcss.com/)
   [![Vite](https://img.shields.io/badge/Vite-5.x-646CFF.svg)](https://vitejs.dev/)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+  <div align="center">
+    <h2>🎥 Watch the Demo!</h2>
+    <a href="https://youtu.be/UIF0-VbEOx4?si=a_gMjbe21xIBlXIc" target="_blank">
+      <img src="https://img.shields.io/badge/▶️_Watch_Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Demo" />
+    </a>
+    <p><a href="https://uniswap-v2-clone-ten.vercel.app/" target="_blank">🌐 Live Demo</a></p>
+  </div>
 </div>
 
 ## 🌟 Features
@@ -81,8 +89,6 @@ uniswap-v2-frontend/
 └── config/                 # Configuration files
 ```
 
-
-
 ## 🙏 Acknowledgments
 
 - [Uniswap V2 Whitepaper](https://uniswap.org/whitepaper.pdf)
@@ -92,5 +98,6 @@ uniswap-v2-frontend/
 ## 🔗 Links
 
 - [Live Demo](https://uniswap-v2-clone-ten.vercel.app/)
+- [📺 Video Demo](https://youtu.be/your_youtube_video_id) - Watch the full demonstration of features
 
 ---
