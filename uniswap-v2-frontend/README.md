@@ -86,7 +86,7 @@ uniswap-v2-frontend/
 ## 🙏 Acknowledgments
 
 - [Uniswap V2 Whitepaper](https://uniswap.org/whitepaper.pdf)
-- [Ethereum Development Documentation](https://ethereum.org/developers/)
+- [Ethereum Development Documentation](https://ethereum.org/en/developers/)
 - [OpenAI API Documentation](https://platform.openai.com/docs/)
 
 ## 🔗 Links
