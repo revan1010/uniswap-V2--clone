@@ -32,7 +32,7 @@
 
 1. **Clone the repository**
    ```bash
-   git clone 
+   git clone https://github.com/revan1010/uniswap-V2--clone.git
    cd uniswap-v2-clone/uniswap-v2-frontend
    ```
 
