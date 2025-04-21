@@ -11,20 +11,22 @@ interface TestCase {
   };
   isHardCase: boolean;
   actualResult?: string;
+  reason?: string; 
 }
 
 const defaultTestCases: TestCase[] = [
   // Regular test cases
   {
     id: '1',
-    command: 'swap 1 ETH for LINK',
+    command: 'swap 1 LINK for WETH',
     expectedResult: {
       success: true,
       action: 'swapTokens',
       parameters: {
-        amountIn: '1',
-        tokenIn: 'ETH',
-        tokenOut: 'LINK'
+        amount: '1',
+        tokenIn: 'LINK',
+        tokenOut: 'WETH',
+        exactType: 'input'
       }
     },
     actualResult: '',
@@ -32,15 +34,15 @@ const defaultTestCases: TestCase[] = [
   },
   {
     id: '2',
-    command: 'add liquidity 2 ETH and 100 LINK to pool',
+    command: 'add liquidity of 2 WETH in WETH-LINK pool',
     expectedResult: {
       success: true,
       action: 'addLiquidity',
       parameters: {
-        token0: 'ETH',
+        token0: 'WETH',
         token1: 'LINK',
-        amount0: '2',
-        amount1: '100'
+        amount0: '2'
+        // amount1 is optional
       }
     },
     actualResult: '',
@@ -48,14 +50,14 @@ const defaultTestCases: TestCase[] = [
   },
   {
     id: '3',
-    command: 'remove 5 LP tokens from ETH-LINK pool',
+    command: 'remove 2 LP tokens from WETH-LINK pool',
     expectedResult: {
       success: true,
       action: 'removeLiquidity',
       parameters: {
-        token0: 'ETH',
+        token0: 'WETH',
         token1: 'LINK',
-        lpTokenAmount: '5'
+        lpTokenAmount: '2'
       }
     },
     actualResult: '',
@@ -63,12 +65,12 @@ const defaultTestCases: TestCase[] = [
   },
   {
     id: '4',
-    command: 'what are the reserves for ETH-LINK pool',
+    command: 'what are the reserves for WETH-LINK pool',
     expectedResult: {
       success: true,
       action: 'getPoolReserves',
       parameters: {
-        token0: 'ETH',
+        token0: 'WETH',
         token1: 'LINK'
       }
     },
@@ -77,14 +79,15 @@ const defaultTestCases: TestCase[] = [
   },
   {
     id: '5',
-    command: 'swap 500 USDC for DAI',
+    command: 'Get me 10 UNI with WETH',
     expectedResult: {
       success: true,
       action: 'swapTokens',
       parameters: {
-        amountIn: '500',
-        tokenIn: 'USDC',
-        tokenOut: 'DAI'
+        amount: '10',
+        tokenIn: 'WETH',
+        tokenOut: 'UNI',
+        exactType: 'output'
       }
     },
     actualResult: '',
@@ -92,15 +95,15 @@ const defaultTestCases: TestCase[] = [
   },
   {
     id: '6',
-    command: 'add liquidity 1000 USDC and 1000 DAI to pool',
+    command: 'Convert my 0.5 WETH to LINK',
     expectedResult: {
       success: true,
-      action: 'addLiquidity',
+      action: 'swapTokens',
       parameters: {
-        token0: 'USDC',
-        token1: 'DAI',
-        amount0: '1000',
-        amount1: '1000'
+        amount: '0.5',
+        tokenIn: 'WETH',
+        tokenOut: 'LINK',
+        exactType: 'input'
       }
     },
     actualResult: '',
@@ -108,42 +111,13 @@ const defaultTestCases: TestCase[] = [
   },
   {
     id: '7',
-    command: 'what are the reserves for ETH-USDC pool',
-    expectedResult: {
-      success: true,
-      action: 'getPoolReserves',
-      parameters: {
-        token0: 'ETH',
-        token1: 'USDC'
-      }
-    },
-    actualResult: '',
-    isHardCase: false
-  },
-  {
-    id: '8',
-    command: 'swap 10 WBTC for ETH',
-    expectedResult: {
-      success: true,
-      action: 'swapTokens',
-      parameters: {
-        amountIn: '10',
-        tokenIn: 'WBTC',
-        tokenOut: 'ETH'
-      }
-    },
-    actualResult: '',
-    isHardCase: false
-  },
-  {
-    id: '9',
-    command: 'how many swaps happened in USDC-DAI pool today',
+    command: 'how many swaps have been so far today for UNI-WETH pool',
     expectedResult: {
       success: true,
       action: 'getSwapCount',
       parameters: {
-        token0: 'USDC',
-        token1: 'DAI',
+        token0: 'UNI',
+        token1: 'WETH',
         timeframe: 'today'
       }
     },
@@ -151,14 +125,47 @@ const defaultTestCases: TestCase[] = [
     isHardCase: false
   },
   {
-    id: '10',
-    command: 'what are the reserves for ETH-LINK pool',
+    id: '8',
+    command: 'Deposit 500 UNI and 3.336611 WETH in uni-weth pool',
     expectedResult: {
       success: true,
-      action: 'getPoolReserves',
+      action: 'addLiquidity',
       parameters: {
-        token0: 'ETH',
-        token1: 'LINK'
+        token0: 'UNI',
+        token1: 'WETH',
+        amount0: '500',
+        amount1: '3.336611'
+      }
+    },
+    actualResult: '',
+    isHardCase: false
+  },
+  {
+    id: '9',
+    command: 'Buy 0.02 WETH with LINK',
+    expectedResult: {
+      success: true,
+      action: 'swapTokens',
+      parameters: {
+        amount: '0.02',
+        tokenIn: 'LINK',
+        tokenOut: 'WETH',
+        exactType: 'output'
+      }
+    },
+    actualResult: '',
+    isHardCase: false
+  },
+  {
+    id: '10',
+    command: 'Redeem 2 LP tokens from the LINK/WETH pool',
+    expectedResult: {
+      success: true,
+      action: 'removeLiquidity',
+      parameters: {
+        token0: 'LINK',
+        token1: 'WETH',
+        lpTokenAmount: '2'
       }
     },
     actualResult: '',
@@ -166,149 +173,263 @@ const defaultTestCases: TestCase[] = [
   },
   
   // Hard test cases
+  // {
+  //   id: '11',
+  //   command: 'I want to provide some ETH and get some LINK tokens in return',
+  //   expectedResult: {
+  //     success: true,
+  //     action: 'swapTokens',
+  //     parameters: {
+  //       tokenIn: 'ETH',
+  //       tokenOut: 'LINK'
+  //     }
+  //   },
+  //   actualResult: '',
+  //   isHardCase: true
+  // },
+  // {
+  //   id: '12',
+  //   command: 'help me become a liquidity provider for the ETH and LINK pair',
+  //   expectedResult: {
+  //     success: true,
+  //     action: 'addLiquidity',
+  //     parameters: {
+  //       token0: 'ETH',
+  //       token1: 'LINK'
+  //     }
+  //   },
+  //   actualResult: '',
+  //   isHardCase: true
+  // },
+  // {
+  //   id: '13',
+  //   command: 'what are the current reserves in the USDC-DAI pool',
+  //   expectedResult: {
+  //     success: true,
+  //     action: 'getPoolReserves',
+  //     parameters: {
+  //       token0: 'USDC',
+  //       token1: 'DAI'
+  //     }
+  //   },
+  //   actualResult: '',
+  //   isHardCase: true
+  // },
+  // {
+  //   id: '14',
+  //   command: 'how many swaps happened in ETH-USDC pool this week',
+  //   expectedResult: {
+  //     success: true,
+  //     action: 'getSwapCount',
+  //     parameters: {
+  //       token0: 'ETH',
+  //       token1: 'USDC',
+  //       timeframe: 'this week'
+  //     }
+  //   },
+  //   actualResult: '',
+  //   isHardCase: true
+  // },
+  // {
+  //   id: '15',
+  //   command: 'I want to remove all my liquidity from ETH-LINK pool',
+  //   expectedResult: {
+  //     success: true,
+  //     action: 'removeLiquidity',
+  //     parameters: {
+  //       token0: 'ETH',
+  //       token1: 'LINK'
+  //     }
+  //   },
+  //   actualResult: '',
+  //   isHardCase: true
+  // },
+  // {
+  //   id: '16',
+  //   command: 'add some ETH to the ETH-USDC pool',
+  //   expectedResult: {
+  //     success: true,
+  //     action: 'addLiquidity',
+  //     parameters: {
+  //       token0: 'ETH',
+  //       token1: 'USDC'
+  //     }
+  //   },
+  //   actualResult: '',
+  //   isHardCase: true
+  // },
+  // {
+  //   id: '17',
+  //   command: 'show me all swaps in ETH-LINK pool this month',
+  //   expectedResult: {
+  //     success: true,
+  //     action: 'getSwapCount',
+  //     parameters: {
+  //       token0: 'ETH',
+  //       token1: 'LINK',
+  //       timeframe: 'this month'
+  //     }
+  //   },
+  //   actualResult: '',
+  //   isHardCase: true
+  // },
+  // {
+  //   id: '18',
+  //   command: 'what are all the reserves in ETH-LINK pool',
+  //   expectedResult: {
+  //     success: true,
+  //     action: 'getPoolReserves',
+  //     parameters: {
+  //       token0: 'ETH',
+  //       token1: 'LINK'
+  //     }
+  //   },
+  //   actualResult: '',
+  //   isHardCase: true
+  // },
+  // {
+  //   id: '19',
+  //   command: 'swap my ETH to USDC',
+  //   expectedResult: {
+  //     success: true,
+  //     action: 'swapTokens',
+  //     parameters: {
+  //       tokenIn: 'ETH',
+  //       tokenOut: 'USDC'
+  //     }
+  //   },
+  //   actualResult: '',
+  //   isHardCase: true
+  // },
+  // {
+  //   id: '20',
+  //   command: 'show me total swaps in WBTC-ETH pool all time',
+  //   expectedResult: {
+  //     success: true,
+  //     action: 'getSwapCount',
+  //     parameters: {
+  //       token0: 'WBTC',
+  //       token1: 'ETH',
+  //       timeframe: 'all time'
+  //     }
+  //   },
+  //   actualResult: '',
+  //   isHardCase: true
+  // }
+
+
   {
     id: '11',
-    command: 'I want to provide some ETH and get some LINK tokens in return',
+    command: 'Swap the smallest amount of LINK that gives exactly 0.01 WETH at today’s rate',
     expectedResult: {
-      success: true,
-      action: 'swapTokens',
-      parameters: {
-        tokenIn: 'ETH',
-        tokenOut: 'LINK'
-      }
+      success: false,
+      action: 'unknown'
     },
     actualResult: '',
-    isHardCase: true
+    isHardCase: true,
+    reason: 'Requires dynamic quote estimation, price oracle logic, and exact output calculation — none of which your schema handles'
   },
   {
     id: '12',
-    command: 'help me become a liquidity provider for the ETH and LINK pair',
+    command: 'Give me a better rate: swapping LINK to WETH or UNI to WETH?',
     expectedResult: {
-      success: true,
-      action: 'addLiquidity',
-      parameters: {
-        token0: 'ETH',
-        token1: 'LINK'
-      }
+      success: false,
+      action: 'unknown'
     },
     actualResult: '',
-    isHardCase: true
+    isHardCase: true,
+    reason: 'Comparative logic across pools not supported in function definitions'
   },
   {
     id: '13',
-    command: 'what are the current reserves in the USDC-DAI pool',
+    command: 'What is my impermanent loss for the last 24h on the LINK-WETH pool?',
     expectedResult: {
-      success: true,
-      action: 'getPoolReserves',
-      parameters: {
-        token0: 'USDC',
-        token1: 'DAI'
-      }
+      success: false,
+      action: 'unknown'
     },
     actualResult: '',
-    isHardCase: true
+    isHardCase: true,
+    reason: 'Requires historical liquidity tracking, not supported by getPoolReserves or swap count'
   },
   {
     id: '14',
-    command: 'how many swaps happened in ETH-USDC pool this week',
+    command: 'Add liquidity using my full UNI balance',
     expectedResult: {
-      success: true,
-      action: 'getSwapCount',
-      parameters: {
-        token0: 'ETH',
-        token1: 'USDC',
-        timeframe: 'this week'
-      }
+      success: false,
+      action: 'unknown'
     },
     actualResult: '',
-    isHardCase: true
+    isHardCase: true,
+    reason: 'Requires wallet balance integration and user context which function calling can’t resolve'
   },
   {
     id: '15',
-    command: 'I want to remove all my liquidity from ETH-LINK pool',
+    command: 'Which of my liquidity positions has earned me the most fees so far?',
     expectedResult: {
-      success: true,
-      action: 'removeLiquidity',
-      parameters: {
-        token0: 'ETH',
-        token1: 'LINK'
-      }
+      success: false,
+      action: 'unknown'
     },
     actualResult: '',
-    isHardCase: true
+    isHardCase: true,
+    reason: 'Requires fee tracking per LP position, which is not exposed in your current function schema or Uniswap V2 contracts'
   },
   {
     id: '16',
-    command: 'add some ETH to the ETH-USDC pool',
+    command: 'Remove LP tokens from whichever pool I have the most LP in',
     expectedResult: {
-      success: true,
-      action: 'addLiquidity',
-      parameters: {
-        token0: 'ETH',
-        token1: 'USDC'
-      }
+      success: false,
+      action: 'unknown'
     },
     actualResult: '',
-    isHardCase: true
+    isHardCase: true,
+    reason: 'Requires portfolio-level LP analysis and conditional logic'
   },
   {
     id: '17',
-    command: 'show me all swaps in ETH-LINK pool this month',
+    command: 'Buy WETH using all available tokens in my wallet',
     expectedResult: {
-      success: true,
-      action: 'getSwapCount',
-      parameters: {
-        token0: 'ETH',
-        token1: 'LINK',
-        timeframe: 'this month'
-      }
+      success: false,
+      action: 'unknown'
     },
     actualResult: '',
-    isHardCase: true
+    isHardCase: true,
+    reason: 'No way to inspect wallet balances or do multi-token swaps dynamically'
   },
   {
     id: '18',
-    command: 'what are all the reserves in ETH-LINK pool',
+    command: 'List all pools where volume increased more than 10% today',
     expectedResult: {
-      success: true,
-      action: 'getPoolReserves',
-      parameters: {
-        token0: 'ETH',
-        token1: 'LINK'
-      }
+      success: false,
+      action: 'unknown'
     },
     actualResult: '',
-    isHardCase: true
+    isHardCase: true,
+    reason: 'Involves cross-pool volume analytics + historical comparison'
   },
   {
     id: '19',
-    command: 'swap my ETH to USDC',
+    command: 'Predict slippage for a 1000 LINK → WETH swap',
     expectedResult: {
-      success: true,
-      action: 'swapTokens',
-      parameters: {
-        tokenIn: 'ETH',
-        tokenOut: 'USDC'
-      }
+      success: false,
+      action: 'unknown'
     },
     actualResult: '',
-    isHardCase: true
+    isHardCase: true,
+    reason: 'Slippage prediction not part of your function set and requires AMM math logic'
   },
   {
     id: '20',
-    command: 'show me total swaps in WBTC-ETH pool all time',
+    command: 'Automatically rebalance my liquidity equally between UNI/WETH and LINK/WETH',
     expectedResult: {
-      success: true,
-      action: 'getSwapCount',
-      parameters: {
-        token0: 'WBTC',
-        token1: 'ETH',
-        timeframe: 'all time'
-      }
+      success: false,
+      action: 'unknown'
     },
     actualResult: '',
-    isHardCase: true
+    isHardCase: true,
+    reason: 'Multi-contract logic + state tracking + token balance inference not supported'
   }
+
+
 ];
 
 const compareResults = (expected: any, actual: any): boolean => {
@@ -448,16 +569,22 @@ export const TestEvaluation: React.FC = () => {
         </button>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-12">
+        {/* Working Test Cases Section */}
         <div>
-          <h2 className="text-xl font-semibold text-white mb-4">Basic Test Cases ({testCases.filter(tc => !tc.isHardCase).length})</h2>
-          <div className="grid gap-4">
+          <h2 className="text-xl font-semibold text-white mb-4">Working Test Cases ({testCases.filter(tc => !tc.isHardCase).length})</h2>
+          <div className="grid gap-6">
             {testCases
               .filter(tc => !tc.isHardCase)
-              .map(testCase => (
-                <div key={testCase.id} className="border border-gray-600 p-4 rounded bg-gray-800">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-gray-200">Command: {testCase.command}</h3>
+              .map((testCase, index) => (
+                <div key={testCase.id} className="border border-gray-600 p-6 rounded-lg bg-gray-800/90 hover:bg-gray-800">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-semibold">
+                        {index + 1}
+                      </span>
+                      <h3 className="font-semibold text-gray-200">Command: {testCase.command}</h3>
+                    </div>
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleRunTest(testCase)}
@@ -474,16 +601,16 @@ export const TestEvaluation: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <p className="font-medium text-gray-300">Expected Result:</p>
-                      <pre className="bg-gray-900 p-2 rounded text-gray-200 border border-gray-700 overflow-x-auto">
+                      <p className="font-medium text-gray-300 mb-2">Expected Result:</p>
+                      <pre className="bg-gray-900 p-3 rounded-lg text-gray-200 border border-gray-700 overflow-x-auto">
                         {JSON.stringify(testCase.expectedResult, null, 2)}
                       </pre>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-300">Actual Result:</p>
-                      <pre className="bg-gray-900 p-2 rounded text-gray-200 border border-gray-700 overflow-x-auto">
+                      <p className="font-medium text-gray-300 mb-2">Actual Result:</p>
+                      <pre className="bg-gray-900 p-3 rounded-lg text-gray-200 border border-gray-700 overflow-x-auto">
                         {testCase.actualResult || 'Not run yet'}
                       </pre>
                     </div>
@@ -493,47 +620,58 @@ export const TestEvaluation: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-12 pt-12 border-t border-red-800">
-          <h2 className="text-xl font-semibold text-red-400 mb-4">Hard Test Cases ({testCases.filter(tc => tc.isHardCase).length})</h2>
-          <div className="grid gap-4">
-            {testCases
-              .filter(tc => tc.isHardCase)
-              .map(testCase => (
-                <div key={testCase.id} className="border border-red-800 p-4 rounded bg-gray-800/90 hover:bg-red-950/30">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-red-200">Command: {testCase.command}</h3>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleRunTest(testCase)}
-                        className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={isProcessing}
-                      >
-                        Run
-                      </button>
-                      <button
-                        onClick={() => handleResetTest(testCase.id)}
-                        className="bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700"
-                      >
-                        Reset
-                      </button>
+        {/* Hard Test Cases Section */}
+        <div className="mt-16">
+          <div className="border-t-4 border-red-800 pt-8">
+            <h2 className="text-2xl font-bold text-red-400 mb-6 flex items-center gap-3">
+              <span className="text-3xl">🔥</span>
+              Hard Test Cases ({testCases.filter(tc => tc.isHardCase).length})
+            </h2>
+            <div className="grid gap-8">
+              {testCases
+                .filter(tc => tc.isHardCase)
+                .map((testCase, index) => (
+                  <div key={testCase.id} className="border-2 border-red-800 p-6 rounded-lg bg-red-950/20 hover:bg-red-950/30 transition-colors">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-red-600 text-white font-semibold">
+                          {index + 1}
+                        </span>
+                        <h3 className="font-semibold text-red-200">Command: {testCase.command}</h3>
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleRunTest(testCase)}
+                          className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={isProcessing}
+                        >
+                          Run
+                        </button>
+                        <button
+                          onClick={() => handleResetTest(testCase.id)}
+                          className="bg-red-800 text-white px-3 py-1 rounded hover:bg-red-900"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <p className="font-medium text-red-300 mb-2">Expected Result:</p>
+                        <pre className="bg-red-950/40 p-3 rounded-lg text-red-100 border border-red-800 overflow-x-auto">
+                          {JSON.stringify(testCase.expectedResult, null, 2)}
+                        </pre>
+                      </div>
+                      <div>
+                        <p className="font-medium text-red-300 mb-2">Actual Result:</p>
+                        <pre className="bg-red-950/40 p-3 rounded-lg text-red-100 border border-red-800 overflow-x-auto">
+                          {testCase.actualResult || 'Not run yet'}
+                        </pre>
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="font-medium text-red-300">Expected Result:</p>
-                      <pre className="bg-gray-900 p-2 rounded text-gray-200 border border-red-900 overflow-x-auto">
-                        {JSON.stringify(testCase.expectedResult, null, 2)}
-                      </pre>
-                    </div>
-                    <div>
-                      <p className="font-medium text-red-300">Actual Result:</p>
-                      <pre className="bg-gray-900 p-2 rounded text-gray-200 border border-red-900 overflow-x-auto">
-                        {testCase.actualResult || 'Not run yet'}
-                      </pre>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))}
+            </div>
           </div>
         </div>
       </div>
